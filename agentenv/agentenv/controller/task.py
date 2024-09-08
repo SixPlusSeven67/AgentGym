@@ -6,8 +6,6 @@ from torch.nn.parallel import DistributedDataParallel
 from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
 
-from agentenv.controller import BaseEnvClient
-
 ConversationMessage = TypedDict(
     "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
 )
@@ -110,7 +108,7 @@ class BaseTask:
         self,
         model: PreTrainedModel,
         tokenizer: PreTrainedTokenizerBase,
-        client: BaseEnvClient,
+        client: "BaseEnvClient",
         idx: int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
@@ -129,14 +127,19 @@ class BaseTask:
         while not done:
             input_length = len(conversation_tokenized["input_ids"])
             # if input_length exceeds 4096, break
-            if input_length > 4096:
+            if input_length >= (generation_config.max_length or 4096):
                 break
-            output = model.generate(
-                torch.tensor(
-                    [conversation_tokenized["input_ids"]], device=model.device
-                ),
-                generation_config=generation_config,
-            )
+            try:
+                output = model.generate(
+                    torch.tensor(
+                        [conversation_tokenized["input_ids"]], device=model.device
+                    ),
+                    generation_config=generation_config,
+                )
+            except Exception as e:
+                print(e)
+                break  # break if generate method raises exceptions
+
             if isinstance(output, GenerateOutput):
                 output = output.sequences
 
@@ -201,14 +204,17 @@ class BaseTask:
     ) -> list[ExperienceOutput]:
         # TODO: "Batch experience generation is not implemented. Generate one by one.",
         client = self.clients[0]
-        result = [self._generate_experience_one(
-                    model=model,
-                    tokenizer=tokenizer,
-                    client=client,
-                    idx=idx,
-                    generation_config=generation_config,
-                    max_rounds=max_rounds,
-                ) for idx in idxs]
+        result = [
+            self._generate_experience_one(
+                model=model,
+                tokenizer=tokenizer,
+                client=client,
+                idx=idx,
+                generation_config=generation_config,
+                max_rounds=max_rounds,
+            )
+            for idx in idxs
+        ]
         return result
 
     def generate_experience(
