@@ -5,8 +5,8 @@ from typing import Optional, Sequence, TypedDict
 
 import numpy as np
 
-from agentenv.controller.agent import Agent
-from agentenv.controller.task import BaseTask, ExperienceOutput, GenerationConfig
+from .agent import Agent
+from .task import BaseTask, ExperienceOutput, GenerationConfig
 
 
 class ActionFormat(Enum):

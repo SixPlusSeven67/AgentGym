@@ -6,7 +6,7 @@ from torch.nn.parallel import DistributedDataParallel
 from transformers import GenerationConfig, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
 
-from . import Agent
+from .agent import Agent
 
 ConversationMessage = TypedDict(
     "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
@@ -132,7 +132,7 @@ class BaseTask:
 
         while not done:
             input_length = len(conversation_tokenized["input_ids"])
-            # if input_length exceeds 4096, break
+            # if input_length exceeds max_length, break
             if input_length >= (generation_config.max_length or 4096):
                 break
             try:
