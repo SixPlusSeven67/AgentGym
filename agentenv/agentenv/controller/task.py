@@ -3,8 +3,10 @@ from typing import Any, Callable, Mapping, Optional, Sequence, TypedDict
 
 import torch
 from torch.nn.parallel import DistributedDataParallel
-from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
+from transformers import GenerationConfig, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
+
+from . import Agent
 
 ConversationMessage = TypedDict(
     "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
@@ -106,13 +108,17 @@ class BaseTask:
 
     def _generate_experience_one(
         self,
-        model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
+        agent: Agent,
         client: "BaseEnvClient",
         idx: int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
     ) -> ExperienceOutput:
+        if isinstance(agent.model, DistributedDataParallel):
+            model = agent.model.module
+        else:
+            model = agent.model
+        tokenizer = agent.tokenizer
         client.reset(idx)
         reward = 0.0
         done = False
@@ -196,8 +202,7 @@ class BaseTask:
 
     def _generate_experience_batch(
         self,
-        model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
+        agent: Agent,
         idxs: Sequence[int],
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
@@ -206,8 +211,7 @@ class BaseTask:
         client = self.clients[0]
         result = [
             self._generate_experience_one(
-                model=model,
-                tokenizer=tokenizer,
+                agent=agent,
                 client=client,
                 idx=idx,
                 generation_config=generation_config,
@@ -219,8 +223,7 @@ class BaseTask:
 
     def generate_experience(
         self,
-        model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
+        agent: Agent,
         idxs: Sequence[int] | int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
@@ -228,12 +231,8 @@ class BaseTask:
         if isinstance(idxs, int):
             idxs = [idxs]
 
-        if isinstance(model, DistributedDataParallel):
-            model = model.module
-
         return self._generate_experience_batch(
-            model=model,
-            tokenizer=tokenizer,
+            agent=agent,
             idxs=idxs,
             generation_config=generation_config,
             max_rounds=max_rounds,

@@ -167,8 +167,7 @@ class BaseAgentEnvController:
         experience = []
         if isinstance(idxs[0], int):
             experience += self.tasks[0].generate_experience(
-                self.agent.model,
-                self.agent.tokenizer,
+                self.agent,
                 idxs,
                 generation_config,
                 max_rounds,
@@ -176,8 +175,7 @@ class BaseAgentEnvController:
         elif isinstance(idxs[0], Sequence):
             for idx, task in enumerate(self.tasks):
                 experience += task.generate_experience(
-                    self.agent.model,
-                    self.agent.tokenizer,
+                    self.agent,
                     idxs[idx],
                     generation_config,
                     max_rounds,
