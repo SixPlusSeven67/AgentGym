@@ -1,14 +1,16 @@
 # Sequential Evaluation template
 
 import json
-import jsonlines
 import time
 from dataclasses import dataclass, field
+
+import jsonlines
 import transformers
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
+
 from agentenv.controller import Agent, Evaluator
-from agentenv.envs import WebshopTask, WebshopAdapter
+from agentenv.envs import WebshopAdapter, WebshopTask
 
 
 @dataclass
@@ -31,6 +33,7 @@ class EvalArguments:
     env_server_base: str = field(default=None)
     data_len: int = field(default=200)
     timeout: int = field(default=2400)
+    use_vllm: bool = field(default=False)
 
 
 def main():
@@ -70,7 +73,9 @@ def main():
 
     # set env client
     evaluator = Evaluator(
-        Agent(model, tokenizer),
+        Agent(
+            model, tokenizer, inference_engine="vllm" if args["use_vllm"] else "default"
+        ),
         [task_class(client_args=env_args, n_clients=1)],
     )
 

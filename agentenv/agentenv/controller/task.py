@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Optional, Sequence, TypedDict
 
 import torch
-from torch.nn.parallel import DistributedDataParallel
 from transformers import GenerationConfig, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
 
@@ -114,10 +113,6 @@ class BaseTask:
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
     ) -> ExperienceOutput:
-        if isinstance(agent.model, DistributedDataParallel):
-            model = agent.model.module
-        else:
-            model = agent.model
         tokenizer = agent.tokenizer
         client.reset(idx)
         reward = 0.0
@@ -136,20 +131,13 @@ class BaseTask:
             if input_length >= (generation_config.max_length or 4096):
                 break
             try:
-                output = model.generate(
-                    torch.tensor(
-                        [conversation_tokenized["input_ids"]], device=model.device
-                    ),
-                    generation_config=generation_config,
-                )
+                generated_tokens = agent.generate(
+                    [conversation_tokenized["input_ids"]], generation_config
+                )[0]
             except Exception as e:
                 print(e)
                 break  # break if generate method raises exceptions
 
-            if isinstance(output, GenerateOutput):
-                output = output.sequences
-
-            generated_tokens = output[0][input_length:].cpu().numpy().tolist()
             if generated_tokens[-1] != tokenizer.eos_token_id:
                 generated_tokens += [tokenizer.eos_token_id]
 
