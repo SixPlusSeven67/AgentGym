@@ -1,7 +1,7 @@
 import gc
 import random
 import shutil
-from enum import Enum
+from abc import ABCMeta, abstractmethod
 from pathlib import Path
 
 import torch
@@ -9,22 +9,49 @@ from torch.nn.parallel import DistributedDataParallel
 from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
 
+from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
 
-class InferenceEngine(Enum):
-    DEFAULT = "default"
-    VLLM = "vllm"
+
+class BaseChatTemplate(metaclass=ABCMeta):
+    @abstractmethod
+    def tokenize_conversation_one(
+        self, message: ConversationMessage, tokenizer: PreTrainedTokenizerBase, idx: int
+    ) -> TokenizedConversationOutput:
+        raise NotImplementedError
+
+    def tokenize_conversation(
+        self,
+        conversation: list[ConversationMessage],
+        tokenizer: PreTrainedTokenizerBase,
+    ) -> TokenizedConversationOutput:        
+        text=""
+        input_ids=[]
+        action_mask=[]
+        for idx, message in enumerate(conversation):
+            res = self.tokenize_conversation_one(message, tokenizer, idx)
+            text+=res["text"]
+            input_ids+=res["input_ids"]
+            action_mask+=res["action_mask"]
+        return TokenizedConversationOutput(
+            {
+                "text": text,
+                "input_ids": input_ids,
+                "action_mask": action_mask,
+            }
+        )
 
 
 class Agent:
-
     def __init__(
         self,
         model: PreTrainedModel,
         tokenizer: PreTrainedTokenizerBase,
+        chat_template: BaseChatTemplate | None = None,
         inference_engine: InferenceEngine = "default",
     ) -> None:
         self.model = model
         self.tokenizer = tokenizer
+        self.chat_template = chat_template or Llama2Template()
         self.inference_engine = InferenceEngine(inference_engine)
         self._vllm = None
 
@@ -104,7 +131,10 @@ class Agent:
                 sampling_params=sampling_params,
                 use_tqdm=False,
             )
-            generated_tokens = [o.outputs[0].token_ids.tolist() for o in output]
+            generated_tokens = [
+                o.outputs[0].token_ids.tolist()
+                for o in output  # pylint: disable=E1133:not-an-iterable
+            ]
 
         else:
             output = model.generate(
@@ -118,3 +148,154 @@ class Agent:
             ]
 
         return generated_tokens
+
+
+class Llama2Template(BaseChatTemplate):
+    def __init__(self) -> None:
+        self.template_name = "llama2"
+        super().__init__()
+
+    def tokenize_conversation_one(
+        self,
+        message: ConversationMessage,
+        tokenizer: PreTrainedTokenizerBase,
+        idx: int = -1,
+    ) -> TokenizedConversationOutput:
+        """
+        This function applied Llama Chat template on the given vicuna-styled conversation message.
+        You can provide your own _tokenize_conversation_one to adapt to your own task.
+        """
+        if message["from"] == "human":
+            text = f"<s>[INST] {message['value']} [/INST]"
+            input_ids = tokenizer.encode(text, add_special_tokens=False)
+        else:
+            text = f"{message['value']}</s>"
+            input_ids = tokenizer.encode(text, add_special_tokens=False)
+            text = f" {text}"
+        if message["loss"]:
+            action_mask = [1] * len(input_ids)
+        else:
+            action_mask = [0] * len(input_ids)
+
+        return TokenizedConversationOutput(
+            {
+                "text": text,
+                "input_ids": input_ids,
+                "action_mask": action_mask,
+            }
+        )
+
+
+class ChatMLTemplate(BaseChatTemplate):
+    def __init__(self):
+        self.templatename = "chatml"
+        super().__init__()
+
+    def tokenize_conversation_one(
+        self,
+        message: ConversationMessage,
+        tokenizer: PreTrainedTokenizerBase,
+        idx: int = -1,
+    ) -> TokenizedConversationOutput:
+        """
+        This function applied Llama Chat template on the given vicuna-styled conversation message.
+        You can provide your own _tokenize_conversation_one to adapt to your own task.
+        """
+        if(idx==0 and message['from']!="system"):
+            text="<|im_start|>system\nYou are a helpful assistant<|im_end|>\n"
+        else:
+            text="\n"
+        if message["from"] == "human":                
+            text += f"<|im_start|>user\n{message['value']}<|im_end|>"
+            input_ids = tokenizer.encode(text, add_special_tokens=False)
+        else:
+            text += f"<|im_start|>assistant\n{message['value']}<|im_end|>"
+            input_ids = tokenizer.encode(text, add_special_tokens=False)
+            text = f" {text}"
+        if message["loss"]:
+            action_mask = [1] * len(input_ids)
+        else:
+            action_mask = [0] * len(input_ids)
+
+        return TokenizedConversationOutput(
+            {
+                "text": text,
+                "input_ids": input_ids,
+                "action_mask": action_mask,
+            }
+        )
+
+
+class Llama3Template(BaseChatTemplate):
+    def  __init__(self):
+        self.templatename="llama3"
+        super().__init__()
+
+    def tokenize_conversation_one(
+        self,
+        message: ConversationMessage,
+        tokenizer: PreTrainedTokenizerBase,
+        idx: int = -1,
+    ) -> TokenizedConversationOutput:
+        val=message["value"]
+        while len(val) and val[-1] in [" ","\n", "\t"]:
+            val=val[:-1]
+        mfrom=message["from"]
+        if mfrom=="human":
+            mfrom="user"
+        elif mfrom=="gpt":
+            mfrom="assistant"
+        if idx == 0:
+            text = f"<|begin_of_text|><|start_header_id|>{mfrom}<|end_header_id|>\n\n{val}<|eot_id|>"
+        else:
+            text = f"<|start_header_id|>{mfrom}<|end_header_id|>\n\n{val}<|eot_id|>"
+        # text+=""
+        input_ids = tokenizer.encode(text, add_special_tokens=False)
+        if(message["loss"]):
+            action_mask = [1] * len(input_ids)
+        else:
+            action_mask = [0] * len(input_ids)
+        return TokenizedConversationOutput(
+            {
+                "text": text,
+                "input_ids": input_ids,
+                "action_mask": action_mask,
+            }
+        )
+
+
+class ChatGLM4Template(BaseChatTemplate):
+    def  __init__(self):
+        self.templatename="chatglm4"
+        super().__init__()
+
+    def tokenize_conversation_one(
+        self,
+        message: ConversationMessage,
+        tokenizer: PreTrainedTokenizerBase,
+        idx: int = -1,
+    ) -> TokenizedConversationOutput:
+        val=message["value"]
+        # while len(val) and val[-1] in [" ","\n", "\t"]:
+        #     val=val[:-1]
+        mfrom=message["from"]
+        if mfrom=="human":
+            mfrom="user"
+        elif mfrom=="gpt":
+            mfrom="assistant"
+        if idx == 0:
+            text = f"[gMASK]<sop><|{mfrom}|>\n{val}"
+        else:
+            text = f"<|{mfrom}|>\n{val}"
+        input_ids = tokenizer.encode(text, add_special_tokens=False)
+        if(message["loss"]):
+            action_mask = [1] * len(input_ids)
+        else:
+            action_mask = [0] * len(input_ids)
+        return TokenizedConversationOutput(
+            {
+                "text": text,
+                "input_ids": input_ids,
+                "action_mask": action_mask,
+            }
+        )

@@ -4,14 +4,16 @@ from typing import Any, Mapping
 import requests
 
 from agentenv.controller import (
-    ActionFormat,
-    ActionWithTought,
     BaseAdapter,
     BaseEnvClient,
     BaseTask,
+    format_function_call_prompt,
+)
+from agentenv.controller.types import (
+    ActionFormat,
+    ActionWithTought,
     ConversationMessage,
     StepOutput,
-    format_function_call_prompt,
 )
 
 WEBSHOP_FUNCTION_DESCRIPTION = [

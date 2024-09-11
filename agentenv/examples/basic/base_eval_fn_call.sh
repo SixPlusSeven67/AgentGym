@@ -3,9 +3,10 @@ export VLLM_WORKER_MULTIPROC_METHOD=spawn
 
 model_path="/cpfs01/shared/public/guohonglin/agentenv_scripts/output/CodeLlama-7b-Instruct-hf/checkpoint-369"
 # model_path="/cpfs01/shared/public/guohonglin/agentenv_scripts/output/Llama-2-7b-chat-hf/checkpoint-369"
-inference_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/AgentEval/webshop_test.json"
-# inference_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/webshop_test_1.json"
-output_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/webshop_test_result_test_codellama7b.jsonl"
+# inference_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/AgentEval/webshop_test.json"
+inference_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/webshop_test_1.json"
+# output_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/webshop_test_result_test_codellama7b.jsonl"
+output_file="/cpfs01/shared/public/guohonglin/agentenv_scripts/tmp.jsonl"
 task_name="webshop"
 seed="42"
 

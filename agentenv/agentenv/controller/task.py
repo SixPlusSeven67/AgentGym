@@ -1,35 +1,9 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Optional, Sequence, TypedDict
+from typing import Any, Callable, Mapping, Optional, Sequence
 
-import torch
-from transformers import GenerationConfig, PreTrainedTokenizerBase
-from transformers.generation.utils import GenerateOutput
+from transformers import GenerationConfig
 
-from .agent import Agent
-
-ConversationMessage = TypedDict(
-    "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
-)
-
-
-@dataclass
-class ExperienceOutput:
-    conversation: list[ConversationMessage]
-    reward: float
-    text: str
-    seq_ids: list[int]
-    attention_mask: list[int]
-    action_mask: list[int]
-
-
-TokenizedConversationOutput = TypedDict(
-    "TokenizedConversationOutput",
-    {
-        "text": str,
-        "input_ids": list[int],
-        "action_mask": list[int],
-    },
-)
+from . import Agent, BaseEnvClient
+from .types import ConversationMessage, ExperienceOutput
 
 
 class BaseTask:
@@ -53,62 +27,10 @@ class BaseTask:
         self.clients = [self.env_client_cls(**client_args) for _ in range(n_clients)]
         self.len = len(self.clients[0])
 
-    def _tokenize_conversation_one(
-        self,
-        message: ConversationMessage,
-        tokenizer: PreTrainedTokenizerBase,
-    ) -> TokenizedConversationOutput:
-        """
-        This function applied Llama Chat template on the given vicuna-styled conversation message.
-        You can provide your own _tokenize_conversation_one to adapt to your own task.
-        """
-        if message["from"] == "human":
-            text = f"<s>[INST] {message['value']} [/INST]"
-            input_ids = tokenizer.encode(text, add_special_tokens=False)
-        else:
-            text = f"{message['value']}</s>"
-            input_ids = tokenizer.encode(text, add_special_tokens=False)
-            text = f" {text}"
-        if message["loss"]:
-            action_mask = [1] * len(input_ids)
-        else:
-            action_mask = [0] * len(input_ids)
-
-        return TokenizedConversationOutput(
-            {
-                "text": text,
-                "input_ids": input_ids,
-                "action_mask": action_mask,
-            }
-        )
-
-    def _tokenize_conversation(
-        self,
-        conversation: list[ConversationMessage],
-        tokenizer: PreTrainedTokenizerBase,
-    ) -> TokenizedConversationOutput:
-        text = ""
-        input_ids = []
-        action_mask = []
-
-        for message in conversation:
-            message_out = self._tokenize_conversation_one(message, tokenizer)
-            text += message_out["text"]
-            input_ids += message_out["input_ids"]
-            action_mask += message_out["action_mask"]
-
-        return TokenizedConversationOutput(
-            {
-                "text": text,
-                "input_ids": input_ids,
-                "action_mask": action_mask,
-            }
-        )
-
     def _generate_experience_one(
         self,
         agent: Agent,
-        client: "BaseEnvClient",
+        client: BaseEnvClient,
         idx: int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
@@ -122,7 +44,9 @@ class BaseTask:
         conversation.append(
             ConversationMessage({"from": "human", "loss": None, "value": state})
         )
-        conversation_tokenized = self._tokenize_conversation(conversation, tokenizer)
+        conversation_tokenized = agent.chat_template.tokenize_conversation(
+            conversation, tokenizer
+        )
         rounds = 0
 
         while not done:
@@ -134,7 +58,7 @@ class BaseTask:
                 generated_tokens = agent.generate(
                     [conversation_tokenized["input_ids"]], generation_config
                 )[0]
-            except Exception as e:
+            except Exception as e:  # pylint: disable=W0718:broad-exception-caught
                 print(e)
                 break  # break if generate method raises exceptions
 
@@ -164,7 +88,7 @@ class BaseTask:
             env_message = ConversationMessage(
                 {"from": "human", "loss": None, "value": state}
             )
-            env_message_tokenized = self._tokenize_conversation_one(
+            env_message_tokenized = agent.chat_template.tokenize_conversation_one(
                 env_message, tokenizer
             )
 
@@ -195,7 +119,6 @@ class BaseTask:
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
     ) -> list[ExperienceOutput]:
-        # TODO: "Batch experience generation is not implemented. Generate one by one.",
         client = self.clients[0]
         result = [
             self._generate_experience_one(
