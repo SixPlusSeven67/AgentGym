@@ -151,10 +151,6 @@ class Agent:
 
 
 class Llama2Template(BaseChatTemplate):
-    def __init__(self) -> None:
-        self.template_name = "llama2"
-        super().__init__()
-
     def tokenize_conversation_one(
         self,
         message: ConversationMessage,
@@ -187,10 +183,6 @@ class Llama2Template(BaseChatTemplate):
 
 
 class ChatMLTemplate(BaseChatTemplate):
-    def __init__(self):
-        self.templatename = "chatml"
-        super().__init__()
-
     def tokenize_conversation_one(
         self,
         message: ConversationMessage,
@@ -227,10 +219,6 @@ class ChatMLTemplate(BaseChatTemplate):
 
 
 class Llama3Template(BaseChatTemplate):
-    def  __init__(self):
-        self.templatename="llama3"
-        super().__init__()
-
     def tokenize_conversation_one(
         self,
         message: ConversationMessage,
@@ -265,10 +253,6 @@ class Llama3Template(BaseChatTemplate):
 
 
 class ChatGLM4Template(BaseChatTemplate):
-    def  __init__(self):
-        self.templatename="chatglm4"
-        super().__init__()
-
     def tokenize_conversation_one(
         self,
         message: ConversationMessage,

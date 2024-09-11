@@ -1,5 +1,3 @@
-# Sequential Evaluation template
-
 import json
 import time
 from dataclasses import dataclass, field
@@ -9,8 +7,15 @@ import transformers
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 
-from agentenv.controller import Agent, Evaluator
-from agentenv.envs import WebshopAdapter, WebshopTask
+from agentenv.controller import (
+    Agent,
+    ChatGLM4Template,
+    ChatMLTemplate,
+    Evaluator,
+    Llama2Template,
+    Llama3Template,
+)
+from agentenv.envs import WebshopTask
 
 
 @dataclass
@@ -33,6 +38,7 @@ class EvalArguments:
     env_server_base: str = field(default=None)
     data_len: int = field(default=200)
     timeout: int = field(default=2400)
+    chat_template: str = field(default="llama2")
     use_vllm: bool = field(default=False)
 
 
@@ -51,17 +57,25 @@ def main():
         MODEL_PATH, device_map="auto", trust_remote_code=True
     ).eval()
 
+    template_classes = {
+        "chatglm4": ChatGLM4Template,
+        "chatml": ChatMLTemplate,
+        "llama2": Llama2Template,
+        "llama3": Llama3Template,
+    }
+    chat_template = template_classes[args["chat_template"]]()
+
     # task_name - task dict
     task_classes = {
         "webshop": WebshopTask,
     }
-    adapter_classes = {"webshop": WebshopAdapter}
+    # adapter_classes = {"webshop": WebshopAdapter}
 
     # select task according to the name
     task_class = task_classes.get(args["task_name"].lower(), None)
     if task_class is None:
         raise ValueError(f"Unsupported task name: {args.task_name}")
-    adapter_class = adapter_classes.get(args["task_name"].lower(), None)
+    # adapter_class = adapter_classes.get(args["task_name"].lower(), None)
 
     # set environment parameters
     env_args = {
@@ -74,7 +88,10 @@ def main():
     # set env client
     evaluator = Evaluator(
         Agent(
-            model, tokenizer, inference_engine="vllm" if args["use_vllm"] else "default"
+            model,
+            tokenizer,
+            inference_engine="vllm" if args["use_vllm"] else "default",
+            chat_template=chat_template,
         ),
         [task_class(client_args=env_args, n_clients=1)],
     )

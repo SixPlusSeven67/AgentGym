@@ -22,6 +22,11 @@ class ActionFormat(Enum):
     CODE_AS_ACTION = "code_as_action"
 
 
+class InferenceEngine(Enum):
+    DEFAULT = "default"
+    VLLM = "vllm"
+
+
 @dataclass
 class StepOutput:
     state: str
@@ -50,8 +55,3 @@ class EvaluationOutput:
     experiences: list[ExperienceOutput]
     score: float
     success: float
-
-
-class InferenceEngine(Enum):
-    DEFAULT = "default"
-    VLLM = "vllm"
