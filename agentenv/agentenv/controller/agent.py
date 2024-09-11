@@ -70,7 +70,7 @@ class Agent:
                 self._vllm = llm
                 shutil.rmtree(shm_path)
 
-            INF = 2**32
+            INF = float("inf")
             max_tokens = generation_config.max_new_tokens or INF
             if generation_config.max_length:
                 max_length = generation_config.max_length - len(input_ids)
