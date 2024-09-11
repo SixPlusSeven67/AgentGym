@@ -62,10 +62,13 @@ class BaseTask:
         You can provide your own _tokenize_conversation_one to adapt to your own task.
         """
         if message["from"] == "human":
-            text = f"<s>[INST] {message['value']} [/INST]"
+            # text = f"<s>[INST] {message['value']} [/INST]"
+            
+            text = f"<|im_start|>{message['from']}\n{message['value']}<|im_end|>"
             input_ids = tokenizer.encode(text, add_special_tokens=False)
         else:
-            text = f"{message['value']}</s>"
+            # text = f"{message['value']}</s>"
+            text = f"<|im_start|>{message['from']}\n{message['value']}<|im_end|>"
             input_ids = tokenizer.encode(text, add_special_tokens=False)
             text = f" {text}"
         if message["loss"]:

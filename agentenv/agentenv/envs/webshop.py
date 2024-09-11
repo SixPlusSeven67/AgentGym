@@ -185,8 +185,8 @@ class WebshopEnvClient(BaseEnvClient):
         return response
 
     def step(self, action: str) -> StepOutput:
-        if action.endswith("</s>"):
-            action = action[:-5]
+        if action.endswith("<|im_end|>"):
+            action = action[:-11]
         try:
             action = WebshopAdapter.action_parser(action, self.action_format)
         except Exception as e:
