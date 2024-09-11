@@ -1,34 +1,9 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Optional, Sequence, TypedDict
+from typing import Any, Callable, Mapping, Optional, Sequence
 
-import torch
-from torch.nn.parallel import DistributedDataParallel
-from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
-from transformers.generation.utils import GenerateOutput
+from transformers import GenerationConfig
 
-ConversationMessage = TypedDict(
-    "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
-)
-
-
-@dataclass
-class ExperienceOutput:
-    conversation: list[ConversationMessage]
-    reward: float
-    text: str
-    seq_ids: list[int]
-    attention_mask: list[int]
-    action_mask: list[int]
-
-
-TokenizedConversationOutput = TypedDict(
-    "TokenizedConversationOutput",
-    {
-        "text": str,
-        "input_ids": list[int],
-        "action_mask": list[int],
-    },
-)
+from . import Agent, BaseEnvClient
+from .types import ConversationMessage, ExperienceOutput
 
 
 class BaseTask:
@@ -52,67 +27,15 @@ class BaseTask:
         self.clients = [self.env_client_cls(**client_args) for _ in range(n_clients)]
         self.len = len(self.clients[0])
 
-    def _tokenize_conversation_one(
-        self,
-        message: ConversationMessage,
-        tokenizer: PreTrainedTokenizerBase,
-    ) -> TokenizedConversationOutput:
-        """
-        This function applied Llama Chat template on the given vicuna-styled conversation message.
-        You can provide your own _tokenize_conversation_one to adapt to your own task.
-        """
-        if message["from"] == "human":
-            text = f"<s>[INST] {message['value']} [/INST]"
-            input_ids = tokenizer.encode(text, add_special_tokens=False)
-        else:
-            text = f"{message['value']}</s>"
-            input_ids = tokenizer.encode(text, add_special_tokens=False)
-            text = f" {text}"
-        if message["loss"]:
-            action_mask = [1] * len(input_ids)
-        else:
-            action_mask = [0] * len(input_ids)
-
-        return TokenizedConversationOutput(
-            {
-                "text": text,
-                "input_ids": input_ids,
-                "action_mask": action_mask,
-            }
-        )
-
-    def _tokenize_conversation(
-        self,
-        conversation: list[ConversationMessage],
-        tokenizer: PreTrainedTokenizerBase,
-    ) -> TokenizedConversationOutput:
-        text = ""
-        input_ids = []
-        action_mask = []
-
-        for message in conversation:
-            message_out = self._tokenize_conversation_one(message, tokenizer)
-            text += message_out["text"]
-            input_ids += message_out["input_ids"]
-            action_mask += message_out["action_mask"]
-
-        return TokenizedConversationOutput(
-            {
-                "text": text,
-                "input_ids": input_ids,
-                "action_mask": action_mask,
-            }
-        )
-
     def _generate_experience_one(
         self,
-        model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
-        client: "BaseEnvClient",
+        agent: Agent,
+        client: BaseEnvClient,
         idx: int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
     ) -> ExperienceOutput:
+        tokenizer = agent.tokenizer
         client.reset(idx)
         reward = 0.0
         done = False
@@ -121,29 +44,24 @@ class BaseTask:
         conversation.append(
             ConversationMessage({"from": "human", "loss": None, "value": state})
         )
-        conversation_tokenized = self._tokenize_conversation(conversation, tokenizer)
+        conversation_tokenized = agent.chat_template.tokenize_conversation(
+            conversation, tokenizer
+        )
         rounds = 0
 
         while not done:
             input_length = len(conversation_tokenized["input_ids"])
-            # if input_length exceeds 4096, break
+            # if input_length exceeds max_length, break
             if input_length >= (generation_config.max_length or 4096):
                 break
             try:
-                output = model.generate(
-                    torch.tensor(
-                        [conversation_tokenized["input_ids"]], device=model.device
-                    ),
-                    generation_config=generation_config,
-                )
-            except Exception as e:
+                generated_tokens = agent.generate(
+                    [conversation_tokenized["input_ids"]], generation_config
+                )[0]
+            except Exception as e:  # pylint: disable=W0718:broad-exception-caught
                 print(e)
                 break  # break if generate method raises exceptions
 
-            if isinstance(output, GenerateOutput):
-                output = output.sequences
-
-            generated_tokens = output[0][input_length:].cpu().numpy().tolist()
             if generated_tokens[-1] != tokenizer.eos_token_id:
                 generated_tokens += [tokenizer.eos_token_id]
 
@@ -170,7 +88,7 @@ class BaseTask:
             env_message = ConversationMessage(
                 {"from": "human", "loss": None, "value": state}
             )
-            env_message_tokenized = self._tokenize_conversation_one(
+            env_message_tokenized = agent.chat_template.tokenize_conversation_one(
                 env_message, tokenizer
             )
 
@@ -196,18 +114,15 @@ class BaseTask:
 
     def _generate_experience_batch(
         self,
-        model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
+        agent: Agent,
         idxs: Sequence[int],
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
     ) -> list[ExperienceOutput]:
-        # TODO: "Batch experience generation is not implemented. Generate one by one.",
         client = self.clients[0]
         result = [
             self._generate_experience_one(
-                model=model,
-                tokenizer=tokenizer,
+                agent=agent,
                 client=client,
                 idx=idx,
                 generation_config=generation_config,
@@ -219,8 +134,7 @@ class BaseTask:
 
     def generate_experience(
         self,
-        model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
+        agent: Agent,
         idxs: Sequence[int] | int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
@@ -228,12 +142,8 @@ class BaseTask:
         if isinstance(idxs, int):
             idxs = [idxs]
 
-        if isinstance(model, DistributedDataParallel):
-            model = model.module
-
         return self._generate_experience_batch(
-            model=model,
-            tokenizer=tokenizer,
+            agent=agent,
             idxs=idxs,
             generation_config=generation_config,
             max_rounds=max_rounds,
