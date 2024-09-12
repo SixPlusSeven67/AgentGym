@@ -2,10 +2,23 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 
 from transformers import GenerationConfig
 
-from . import Agent, BaseEnvClient
-from .types import ConversationMessage, ExperienceOutput
+from agentenv.controller.agent import Agent
+from agentenv.controller.env import BaseEnvClient
+# from agentenv.controller.types import ConversationMessage, ExperienceOutput
 
-
+from dataclasses import dataclass
+from typing import Optional, Sequence, TypedDict
+ConversationMessage = TypedDict(
+    "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
+)
+@dataclass
+class ExperienceOutput:
+    conversation: list[ConversationMessage]
+    reward: float
+    text: str
+    seq_ids: list[int]
+    attention_mask: list[int]
+    action_mask: list[int]
 class BaseTask:
     env_client_cls: Callable
     env_name: str
@@ -26,6 +39,30 @@ class BaseTask:
             raise NotImplementedError
         self.clients = [self.env_client_cls(**client_args) for _ in range(n_clients)]
         self.len = len(self.clients[0])
+    def printstd(
+            self,
+        ):
+        import transformers
+        tk=transformers.AutoTokenizer.from_pretrained("/root/AgentGym/Qwen")
+        import json
+        with open("/root/AgentGym/dataset/alfworld_train.json", "r", encoding="utf-8") as f:
+            data=json.load(f)
+            conv=data[0]["conversations"]
+            chat=self.tochat(conv)
+            res1=tk.apply_chat_template(chat, add_generation_prompt=True)
+            dec=tk.decode(res1)
+            print(dec)
+            
+    def tochat(self, conversation: list[ConversationMessage]):
+        ret=[]
+        for message in conversation:
+            mfrom=message["from"]
+            if mfrom=="human":
+                mfrom="user"
+            elif mfrom=="gpt":
+                mfrom="assistant"
+            ret.append({"role":mfrom,"content":message["value"]})
+        
 
     def _generate_experience_one(
         self,
@@ -44,7 +81,7 @@ class BaseTask:
         conversation.append(
             ConversationMessage({"from": "human", "loss": None, "value": state})
         )
-        conversation_tokenized = agent.chat_template.tokenize_conversation_add_generation_prompt(
+        conversation_tokenized = agent.chat_template.tokenize_conversation(
             conversation, tokenizer
         )
         rounds = 0
@@ -88,7 +125,7 @@ class BaseTask:
             env_message = ConversationMessage(
                 {"from": "human", "loss": None, "value": state}
             )
-            env_message_tokenized = agent.chat_template.tokenize_conversation_one_add_generation_prompt(
+            env_message_tokenized = agent.chat_template.tokenize_conversation_one(
                 env_message, tokenizer
             )
 
@@ -148,3 +185,30 @@ class BaseTask:
             generation_config=generation_config,
             max_rounds=max_rounds,
         )
+
+
+        
+def tochat(conversation: list[ConversationMessage]):
+    ret=[]
+    for message in conversation:
+        mfrom=message["from"]
+        if mfrom=="human":
+            mfrom="user"
+        elif mfrom=="gpt":
+            mfrom="assistant"
+        ret.append({"role":mfrom,"content":message["value"]})
+    return ret
+def printstd():
+    import transformers
+    tk=transformers.AutoTokenizer.from_pretrained("/mnt/data/user/wang_yuhui/model/glm-4-9b-chat",trust_remote_code=True)
+    import json
+    with open("/root/AgentGym/dataset/alfworld_train.json", "r", encoding="utf-8") as f:
+        data=json.load(f)
+        conv=data[0]["conversations"]
+        chat=tochat(conv)
+        res1=tk.apply_chat_template(chat, add_generation_prompt=True)
+        dec=tk.decode(res1)
+        print(dec)
+
+if __name__ == "__main__":
+    printstd()
