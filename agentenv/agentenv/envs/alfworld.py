@@ -413,7 +413,7 @@ class obj:
         self.name = name
         self.id = id
 
-class AlfworldAdapter(BaseAdapter):
+class AlfWorldAdapter(BaseAdapter):
     conversation_start_dict = {
         ActionFormat.REACT:(
             ConversationMessage(
@@ -471,7 +471,7 @@ class AlfworldAdapter(BaseAdapter):
         thought = _fn_call["thought"]
         fn_name = _fn_call["function_name"]
         args = _fn_call["arguments"]
-        if fn_name not in AlfworldAdapter.valid_functions:
+        if fn_name not in AlfWorldAdapter.valid_functions:
             raise ValueError("Invalid function name.")
         if fn_name == "goto":
             action = f'go to {args["recep"].name} {args["recep"].id}'
@@ -663,7 +663,7 @@ class AlfworldAdapter(BaseAdapter):
 
 
 class AlfWorldEnvClient(BaseEnvClient):
-    adapter_cls = AlfworldAdapter
+    adapter_cls = AlfWorldAdapter
     
     def __init__(
         self,

@@ -1,5 +1,5 @@
 from .academia import AcademiaEnvClient, AcademiaTask
-from .alfworld import AlfWorldEnvClient, AlfWorldTask
+from .alfworld import AlfWorldEnvClient, AlfWorldTask, AlfWorldAdapter
 from .babyai import BabyAIEnvClient, BabyAITask
 from .lmrlgym import MazeEnvClient, MazeTask, WordleEnvClient, WordleTask
 from .movie import MovieEnvClient, MovieTask
