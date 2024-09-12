@@ -9,27 +9,7 @@ from torch.nn.parallel import DistributedDataParallel
 from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
 
-# from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
-from typing import Optional, Sequence, TypedDict
-from dataclasses import dataclass
-from enum import Enum
-ConversationMessage = TypedDict(
-    "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
-)
-
-TokenizedConversationOutput = TypedDict(
-    "TokenizedConversationOutput",
-    {
-        "text": str,
-        "input_ids": Sequence[int],
-        "action_mask": Sequence[int],
-    },
-)
-class InferenceEngine(Enum):
-    DEFAULT = "default"
-    VLLM = "vllm"
-
-
+from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
 
 class BaseChatTemplate(metaclass=ABCMeta):
     @abstractmethod
@@ -451,52 +431,3 @@ class ChatGLM4Template(BaseChatTemplate):
             }
         )
     
-def printatt(c: TokenizedConversationOutput, tk):
-    assert len(c["input_ids"]) == len(c["action_mask"])
-    text = ""
-    for i in range(len(c["input_ids"])):
-        l=[]
-        if c["action_mask"][i] == 1:
-            l.append(c["input_ids"][i])
-
-        text += tk.decode(l)
-    print(text)
-   
-def check(c:ConversationMessage, tk, tp):     
-    def tochat(conversation: list[ConversationMessage]):
-        ret=[]
-        for message in conversation:
-            mfrom=message["from"]
-            if mfrom=="human":
-                mfrom="user"
-            elif mfrom=="gpt":
-                mfrom="assistant"
-            ret.append({"role":mfrom,"content":message["value"]})
-        return ret
-    chat = tochat(c)
-    res1 = tk.apply_chat_template(chat, add_generation_prompt=True)
-    res2 = tp.tokenize_conversation_add_generation_prompt(c, tk)["input_ids"]
-    dec1=tk.decode(res1)
-    dec2=tk.decode(res2)
-    print(dec1)
-    print("-------------------------")
-    print(dec2)
-    for idx,(r1, r2) in enumerate(zip(res1, res2)):
-        if(r1 != r2):
-            print(tk.decode([r1]))
-            print(tk.decode([r2]))
-            print(tk.decode(res1[:idx]))
-            
-
-if __name__ == "__main__":
-    import json
-    tp = ChatMLTemplate()
-    import transformers
-    tk =transformers.AutoTokenizer.from_pretrained("/root/AgentGym/Qwen", trust_remote_code=True)
-    with open("/root/AgentGym/dataset/alfworld_train.json", "r", encoding = "utf-8") as f:
-        data=json.load(f)
-        data=data[0]["conversations"]
-        res=tp.tokenize_conversation_add_generation_prompt(data, tk)
-        # check(data, tk, tp)
-        printatt(res, tk)
-        pass
