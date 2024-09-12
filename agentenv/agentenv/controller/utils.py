@@ -1,22 +1,16 @@
 import json
-from dataclasses import dataclass
-from enum import Enum
-from typing import Optional, Sequence, TypedDict
+from typing import Optional, Sequence
 
 import numpy as np
+from transformers import GenerationConfig
 
-from agentenv.controller.agent import Agent
-from agentenv.controller.task import BaseTask, ExperienceOutput, GenerationConfig
-
-
-class ActionFormat(Enum):
-    REACT = "react"
-    FUNCTION_CALLING = "function_calling"
-    CODE_AS_ACTION = "code_as_action"
-
-
-ConversationMessage = TypedDict(
-    "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
+from . import Agent, BaseTask
+from .types import (
+    ActionFormat,
+    ActionWithTought,
+    ConversationMessage,
+    EvaluationOutput,
+    ExperienceOutput,
 )
 
 INVOKING_FUNCTION_PROMPT = """If you want to invoke a provided function or tool, please reply in the following *JSON* format:
@@ -41,19 +35,6 @@ def format_function_call_prompt(function_description: Sequence) -> str:
     prompt += INVOKING_FUNCTION_PROMPT
 
     return prompt
-
-
-@dataclass
-class ActionWithTought:
-    thought: str
-    action: str
-
-
-@dataclass
-class EvaluationOutput:
-    experiences: Sequence[ExperienceOutput]
-    score: float
-    success: float
 
 
 class BaseAdapter:
@@ -167,8 +148,7 @@ class BaseAgentEnvController:
         experience = []
         if isinstance(idxs[0], int):
             experience += self.tasks[0].generate_experience(
-                self.agent.model,
-                self.agent.tokenizer,
+                self.agent,
                 idxs,
                 generation_config,
                 max_rounds,
@@ -176,8 +156,7 @@ class BaseAgentEnvController:
         elif isinstance(idxs[0], Sequence):
             for idx, task in enumerate(self.tasks):
                 experience += task.generate_experience(
-                    self.agent.model,
-                    self.agent.tokenizer,
+                    self.agent,
                     idxs[idx],
                     generation_config,
                     max_rounds,

@@ -15,7 +15,8 @@ from agentenv.controller import (
     format_function_call_prompt,
 )
 
-from agentenv.controller import BaseEnvClient, BaseTask, ConversationMessage, StepOutput
+from agentenv.controller import BaseEnvClient, BaseTask
+from agentenv.controller.types import ConversationMessage, StepOutput
 
 
 ALFWORLD_FUNCTION_DESCRIPTION = [

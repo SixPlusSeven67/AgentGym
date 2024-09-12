@@ -1,14 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
 
-from .utils import ActionFormat, ConversationMessage
-
-
-@dataclass
-class StepOutput:
-    state: str
-    reward: float
-    done: bool
+from .types import ActionFormat, ConversationMessage, StepOutput
 
 
 class BaseEnvClient(metaclass=ABCMeta):
