@@ -1,11 +1,11 @@
 export VLLM_USE_MODELSCOPE=0
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 
-model_path="/mnt/data/user/huang_jixuan/models/Llama"
+model_path="/root/AgentGym/HJX_test/fn_call/outputs/model/webshop_tiny_Llama/checkpoint-369"
 inference_file="/mnt/data/user/huang_jixuan/agentgym/AgentEval/webshop_test.json"
 output_file="webshop_fncall.jsonl"
 task_name="webshop"
-chat_template="chatml"
+chat_template="llama2"
 seed="42"
 use_vllm="False"
 

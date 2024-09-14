@@ -8,6 +8,7 @@ class SciWorldEnv:
         self.env = {}
         self.info = {}
         self.games = []
+        self.ls = []
 
     def create(self):
         try:
@@ -24,6 +25,7 @@ class SciWorldEnv:
                         {"taskName": value, "variationIdx": i}
                         for i in range(self.env[idx].getMaxVariations(value))
                     ]
+            self.ls.append(idx)
             print(f"-------Env {idx} created--------")
             return {"id": idx}
         except Exception as e:
@@ -107,6 +109,11 @@ class SciWorldEnv:
             raise ValueError(f"The task with environment {idx} has been deleted.")
         if not is_reset and self.info[idx]["done"]:
             raise ValueError(f"The task with environment {idx} has finished.")
+        
+    def __del__(self):
+        for idx in self.ls:
+            self.env[idx].close
+            print(f"-------Env {idx} closed--------")
 
 
 server = SciWorldEnv()

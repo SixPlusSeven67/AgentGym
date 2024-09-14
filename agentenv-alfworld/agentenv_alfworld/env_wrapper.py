@@ -20,6 +20,7 @@ class ALFWorld_Wrapper:
         self.config = load_config(self.config_path)
 
         self._max_id = 0
+        self.ls = []
         self.env = {}  # dict[id, env_item]
         self.env_init = {}  # dict[id, env_item]
         self.info = {}  # dict[id, env_info]
@@ -76,11 +77,17 @@ class ALFWorld_Wrapper:
             self.env[idx] = SingleAlfredTWEnv(self.config)
             self.info[idx] = {"done": False, "reward": 0, "deleted": False}
             print(f"-------Env {idx} created--------")
+            self.ls.append(idx)
             self._max_id += 1
             payload = {"id": idx}
         except Exception as e:
             payload = {"error": f"{e}"}
         return payload
+    
+    def __del__(self):
+        for idx in self.ls:
+            self.env[idx].close
+            print(f"-------Env {idx} closed--------")
 
     def step(self, idx: int, action: str):
         try:
