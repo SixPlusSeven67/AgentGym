@@ -11,6 +11,7 @@ from transformers.generation.utils import GenerateOutput
 
 from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
 
+
 class BaseChatTemplate(metaclass=ABCMeta):
     @abstractmethod
     def tokenize_conversation_one(
@@ -72,7 +73,7 @@ class Agent:
             if not refresh_engine and self._vllm is not None:
                 llm = self._vllm
             else:
-                del self._vllm
+                self._vllm = None
                 gc.collect()
                 if model.device != torch.cpu:
                     model.to("cpu")
@@ -181,7 +182,6 @@ class Llama2Template(BaseChatTemplate):
                 "action_mask": action_mask,
             }
         )
-    
 
 
 class ChatMLTemplate(BaseChatTemplate):
@@ -229,8 +229,8 @@ class ChatMLTemplate(BaseChatTemplate):
                 "action_mask": action_mask,
             }
         )
-    
-    
+
+
 class Llama3Template(BaseChatTemplate):
     def tokenize_conversation_one(
         self,
@@ -275,7 +275,7 @@ class Llama3Template(BaseChatTemplate):
                 "action_mask": action_mask,
             }
         )
-    
+
 class ChatGLM4Template(BaseChatTemplate):
     def tokenize_conversation_one(
         self,
@@ -317,4 +317,3 @@ class ChatGLM4Template(BaseChatTemplate):
                 "action_mask": action_mask,
             }
         )
-    
