@@ -29,10 +29,9 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to move towards or the location you want to arrive at. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to move towards or the location you want to arrive at.",
                 },  
             },
-            "additionalProperties": "false",
             "required":["recep"],
         }
     },
@@ -44,14 +43,13 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object you want to pick up. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object you want to pick up.",
                 },
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to pick up object from. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to pick up object from.",
                 }
             },
-            "additionalProperties": "false",
             "required":["obj","recep"],
         }
     },
@@ -63,14 +61,13 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object you want to place. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object you want to place.",
                 },
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to put object on. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to put object on.",
                 }
             },
-            "additionalProperties": "false",
             "required":["obj","recep"],
         }
     },
@@ -82,10 +79,9 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to open. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to open.",
                 }
             },
-            "additionalProperties": "false",
             "required":["obj"]
         }
     },
@@ -97,10 +93,9 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to close. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to close.",
                 }
             },
-            "additionalProperties": "false",
             "required":["recep"]
         }
     },
@@ -110,7 +105,6 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
         "parameters":{
             "type": "object",
             "properties":{},
-            "additionalProperties": "false",
             "required": ["obj"]
         },
     },
@@ -122,10 +116,9 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object you want to toggle. You may have to give the specific location of the object if necessary. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object you want to toggle.",
                 },
             },
-            "additionalProperties": "false",
             "required":["obj"]
         }
     },
@@ -137,14 +130,13 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object you want to heat. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object you want to heat.",
                 },
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to use to heat object. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to use to heat object.",
                 }
             },
-            "additionalProperties": "false",
             "required":["obj","recep"]
         }
     },
@@ -156,20 +148,19 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object you want to cool. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object you want to cool.",
                 },
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to use to cool object. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to use to cool object.",
                 }
             },
-            "additionalProperties": "false",
             "required":["obj","recep"]
         }
     },
     {
         "name":"clean",
-        "description":"Cleans an object using a specified receptacle. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+        "description":"Cleans an object using a specified receptacle.",
         "parameter":{
             "type":"object",
             "properties":{
@@ -179,10 +170,9 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
                 },
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to use to clean object. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to use to clean object.",
                 }
             },
-            "additionalProperties": "false",
             "required":["obj","recep"]
         }
     },
@@ -203,14 +193,13 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "recep":{
                     "type":"string",
-                    "description":"The receptacle you want to get more information. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The receptacle you want to get more information.",
                 },  
                 "obj":{
                     "type":"string",
-                    "description":"The object(like a desklamp in order to look clearly) you want use to examine a receptacle. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object(like a desklamp in order to look clearly) you want use to examine a receptacle.",
                 },  
             },
-            "additionalProperties": "false",
             "required":["recep"],
         }
     },
@@ -222,10 +211,9 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object(like a desklamp in order to look clearly) you want use to examine a receptacle. It should be chosen based on the previous obervation and your task. Please choose carefully.",
+                    "description":"The object(like a desklamp in order to look clearly) you want use to examine a receptacle.",
                 },  
             },
-            "additionalProperties": "false",
             "required":["obj"],
         }
     }
@@ -264,7 +252,7 @@ class AlfWorldAdapter(BaseAdapter):
                 {
                     "from": "human",
                     "loss": None,
-                    "value": f'Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. For each of your turn, you will be given a list of actions which you can choose one to perform in this turn. An action should be done by invoking an function.\n\n {format_function_call_prompt(ALFWORLD_FUNCTION_DESCRIPTION)}\n\n\nAfter your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the envrionment output \"Nothing happened\", that means the previous action is invalid and you should try more options.\n Reminder: \n1. the action must be chosen from the given available actions. Any actions except provided available actions will be regarded as illegal. \n2. Think when necessary, try to act directly more in the process.',
+                    "value": f'Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. For each of your turn, you will be given a list of actions which you can choose one to perform in this turn. Note that you should not choose actions and objects/receptacles not listed in the first turn. An action should be done by invoking an function.\n\n {format_function_call_prompt(ALFWORLD_FUNCTION_DESCRIPTION)}\n\n\nAfter your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the envrionment output \"Nothing happened\", that means the previous action is invalid and you should try more options.\n Reminder: \n1. the action must be chosen from the given available actions. Any actions except provided available actions will be regarded as illegal. \n2. Think when necessary, try to act directly more in the process.',
                 }
             ),
             ConversationMessage(
@@ -291,7 +279,7 @@ class AlfWorldAdapter(BaseAdapter):
         'goto': ["recep"], 
         'take': ["obj", "recep"], 
         'put': ["obj", "recep"], 
-        'toggle': ["obj", "recep"], 
+        'toggle': ["obj"], 
         'open': ["recep"], 
         'close': ["recep"], 
         'heat': ["obj", "recep"], 
@@ -339,7 +327,9 @@ class AlfWorldAdapter(BaseAdapter):
 
         if fn_name not in AlfWorldAdapter.valid_functions_args:
             raise ValueError("Invalid function name.")
-        arg_ls = AlfWorldAdapter.function_to_name[fn_name]
+        arg_ls = AlfWorldAdapter.valid_functions_args[fn_name]
+        if len(args) > len(arg_ls):
+            raise TypeError(f"Got unexpected arguments. Function {fn_name} has {len(arg_ls)} argument(s) but got {len(args)}.")
         if len(args) == 1:
             # open door
             action_name = AlfWorldAdapter.function_to_name[fn_name]
@@ -351,7 +341,7 @@ class AlfWorldAdapter(BaseAdapter):
         else:  # two arguments
             # take mug from desk
             action_name = AlfWorldAdapter.function_to_name[fn_name]
-            conjunction = AlfWorldAdapter.conjunction_words[fn_name] if fn_name != 'toggle' else ''
+            conjunction = AlfWorldAdapter.conjunction_words[fn_name]
             action = f'{action_name} {args[arg_ls[0]]} {conjunction} {args[arg_ls[1]]}'
         return ActionWithTought(thought=thought, action=action)
     
@@ -379,6 +369,9 @@ class AlfWorldAdapter(BaseAdapter):
             str_arg_ls = [s.strip() for s in str_arg_ls]
         else:
             str_arg_ls = [str_arg.strip()] if len(str_arg) else []
+        
+        if len(str_arg_ls) > len(arg_ls):
+            raise TypeError(f"Got unexpected arguments. Function {fn_name} has {len(arg_ls)} argument(s) but got {len(str_arg_ls)}.")
 
         if len(str_arg_ls) > len(arg_ls):
             raise TypeError(f"Got unexpected arguments. function {fn_name} expected {len(arg_ls)} but got {len(str_arg_ls)}.")
@@ -433,7 +426,7 @@ class AlfWorldEnvClient(BaseEnvClient):
         if ok.status_code != 200:
             raise requests.RequestException(f"Failed to create environment: {ok}")
         
-        self._conversation_start = self.adapter_cls.conversation_start_dict[
+        self.conversation_start = self.adapter_cls.conversation_start_dict[
             self.action_format
         ]
         

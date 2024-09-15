@@ -1,16 +1,16 @@
 export VLLM_USE_MODELSCOPE=0
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 
-model_path="/root/AgentGym/HJX_test/fn_call/outputs/model/webshop_tiny_Llama/checkpoint-369"
-inference_file="/mnt/data/user/huang_jixuan/agentgym/AgentEval/webshop_test.json"
-output_file="webshop_fncall.jsonl"
-task_name="webshop"
+model_path="/root/AgentGym/HJX_test/fn_call/outputs/model/alfworld_tiny_Llama/checkpoint-2421"
+inference_file="/mnt/data/user/huang_jixuan/agentgym/AgentEval/alfworld_test.json"
+output_file="alfworld_fncall.jsonl"
+task_name="alfworld"
 chat_template="llama2"
 seed="42"
-use_vllm="False"
+use_vllm="True"
 
 # environment parameters
-max_round="10"
+max_round="30"
 env_server_base="http://127.0.0.1:36001"
 
 python -u base_eval_fn_call.py \

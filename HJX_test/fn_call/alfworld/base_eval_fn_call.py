@@ -15,7 +15,7 @@ from agentenv.controller import (
     Llama2Template,
     Llama3Template,
 )
-from agentenv.envs import WebshopTask
+from agentenv.envs import WebshopTask, AlfWorldTask
 
 
 @dataclass
@@ -68,6 +68,7 @@ def main():
     # task_name - task dict
     task_classes = {
         "webshop": WebshopTask,
+        'alfworld': AlfWorldTask
     }
     # adapter_classes = {"webshop": WebshopAdapter}
 

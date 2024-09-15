@@ -86,7 +86,7 @@ class ALFWorld_Wrapper:
     
     def __del__(self):
         for idx in self.ls:
-            self.env[idx].close
+            self.env_init[idx].close()
             print(f"-------Env {idx} closed--------")
 
     def step(self, idx: int, action: str):

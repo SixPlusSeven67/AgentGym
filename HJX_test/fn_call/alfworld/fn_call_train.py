@@ -21,10 +21,10 @@ def tokenize_conversation_one(
     tokenizer: PreTrainedTokenizerBase,
 ) -> TokenizedConversationOutput:
     if message["from"] == "human":
-        text = f"<|im_start|>{message['from']}\n{message['value']}<|im_end|>"
+        text = f"<s>[INST] {message['value']} [/INST]"
         input_ids = tokenizer.encode(text, add_special_tokens=False)
     else:
-        text = f"<|im_start|>{message['from']}\n{message['value']}<|im_end|>"
+        text = f"{message['value']}</s>"
         input_ids = tokenizer.encode(text, add_special_tokens=False)
         text = f" {text}"
     if message["loss"]:
@@ -63,12 +63,12 @@ def tokenize_conversation(
     )
 
 def main():
-    model_path = "/mnt/data/user/huang_jixuan/models/Qwen2_0.5B"
+    model_path = "/mnt/data/user/huang_jixuan/models/TinyLlama/TinyLlama_v1.1"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(
+    model = LlamaForCausalLM.from_pretrained(
         model_path,
         torch_dtype=torch.float16,
         attn_implementation="flash_attention_2",
@@ -87,7 +87,7 @@ def main():
                     )
                 except Exception as e:
                     print(e)
-                    conversations[i]["value"] = ''    # 该怎么处理比较好？
+                    conversations[i]["value"] = AlfWorldAdapter.parse_react(conversations[i]["value"])    # 该怎么处理比较好？
         tokenized = tokenize_conversation(conversations, tokenizer)
         return {
             "input_ids": tokenized["input_ids"],
@@ -107,7 +107,7 @@ def main():
     trainer = Trainer(
         model=model,
         args=TrainingArguments(
-            output_dir="/root/AgentGym/HJX_test/fn_call/outputs/model/alfworld_qwen",
+            output_dir="/root/AgentGym/HJX_test/fn_call/outputs/model/alfworld_tiny_Llama",
             do_train=True,
             per_device_train_batch_size=1,
             gradient_accumulation_steps=1,
@@ -116,7 +116,7 @@ def main():
             num_train_epochs=3,
             lr_scheduler_type="cosine",
             warmup_ratio=0.1,
-            logging_dir="/root/AgentGym/HJX_test/fn_call/outputs/logs/alfworld_qwen",
+            logging_dir="/root/AgentGym/HJX_test/fn_call/outputs/logs/alfworld_tiny_Llama",
             logging_strategy="steps",
             logging_steps=1,
             save_strategy="epoch",

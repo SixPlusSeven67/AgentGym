@@ -26,10 +26,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The container you want to open. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The container you want to open."
                 }
             },
-            "additionalProperties": "false",
             "required": ["obj"]
         }
     },
@@ -41,10 +40,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The container you want to close. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The container you want to close."
                 },
             },
-            "additionalProperties": "false",
             "required": ["obj"]
         }
     },
@@ -56,10 +54,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The container you want to activate. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The container you want to activate."
                 },
             },
-            "additionalProperties": "false",
             "required": ["obj"]
         },
         
@@ -72,10 +69,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The container you want to deactivate. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The container you want to deactivate."
                 },
             },
-            "additionalProperties": "false",
             "required": ["obj"]
         },
         
@@ -88,29 +84,27 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj1":{
                     "type": "string",
-                    "description":"The first object you choose to create the elecrical circuit. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The first object you choose to create the elecrical circuit."
                 },
                 "obj2":{
                     "type": "string",
-                    "description": "The second object you choose to create the elecrical circuit. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The second object you choose to create the elecrical circuit."
                 }
             },
-            "additionalProperties": "false",
             "required": ["obj1", "obj2"]
         }
     },
     {
         "name": "disconnect", 
-        "description": "Disconnect electrical components. You may call this function if you want to disconncect a circuit.",
+        "description": "Disconnect electrical components.",
         "parameters":{
             "type": "object",
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The object you choose to disconncect from the elecrical circuit. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The object you choose to disconncect from the elecrical circuit."
                 }
             },
-            "additionalProperties": "false",
             "required": ["obj"]
         }
     },
@@ -122,38 +116,35 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "tool":{
                     "type": "string",
-                    "description":"The device/item you choose to use as a tool. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The device/item you choose to use as a tool."
                 },
                 "obj":{
                     "type": "string",
-                    "description": "The object which you choose to use the device/item on. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The object which you choose to use the device/item on."
                 }
             },
-            "additionalProperties": "false",
             "required": ["tool"]
         }
     },
     {
         "name": "lookaround",
-        "description": "Describe the current room. Call this function if you want to know what the room is called, what are things in this room and how they display.",
+        "description": "Describe the current room.",
         "parameters": {
             "type": "object",
             "properties": {},
-            "additionalProperties": "false"
         }
     },
     {
         "name": "lookat",
-        "description": "Describe an object in detail. Call this function if you want to get further information of an object.",
+        "description": "Describe an object in detail.",
         "parameters":{
             "type": "object",
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The object you want to get some detailed information. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The object you want to get some detailed information."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -165,10 +156,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The object you want to know its contents. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The object you want to know its contents."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -180,10 +170,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "info":{
                     "type": "string",
-                    "description":"The note or book you want to read. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The note or book you want to read."
                 }
             },
-        "additionalProperties": "false",
         "required": ["info"]
         },
     },
@@ -195,14 +184,13 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The object you want to move to the container. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The object you want to move to the container."
                 },
                 "container":{
                     "type": "string",
-                    "description": "The container you choose to put the object in/on. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The container you choose to put the object in/on."
                 }
             },
-            "additionalProperties": "false",
             "required": ["obj", "container"]
         }
     },
@@ -214,10 +202,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description": "The object you choose to move to the inverntory. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The object you choose to move to the inverntory."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -229,10 +216,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description":"The object you want to move from the inventory. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description":"The object you want to move from the inventory."
                 },
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -244,14 +230,13 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "liq":{
                     "type": "string",
-                    "description": "The liquid you choose to pour. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The liquid you choose to pour.."
                 },
                 "container":{
                     "type": "string",
-                    "description": "The container you choose to pour the liquid into. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The container you choose to pour the liquid into."
                 }
             },
-        "additionalProperties": "false",
         "required": ["liq", "container"]
         },
     },
@@ -263,14 +248,13 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "liq":{
                     "type": "string",
-                    "description": "The liquid you choose to dunk the container in. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The liquid you choose to dunk the container in."
                 },
                 "container":{
                     "type": "string",
-                    "description": "The container you choose to be dunk in the chosen liquid. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The container you choose to be dunk in the chosen liquid."
                 }
             },
-        "additionalProperties": "false",
         "required": ["liq", "container"]
         },
     },
@@ -282,10 +266,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "container":{
                     "type": "string",
-                    "description": "The container whose contents you want to chemically mix. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The container whose contents you want to chemically mix."
                 }
             },
-        "additionalProperties": "false",
         "required": ["container"]
         },
     },
@@ -297,10 +280,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "loc":{
                     "type": "string",
-                    "description": "The location you want to arrive at. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The location you want to arrive at."
                 }
             },
-        "additionalProperties": "false",
         "required": ["loc"]
         },
     },
@@ -325,10 +307,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "food":{
                     "type": "string",
-                    "description": "The food you choose to eat. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The food you choose to eat."
                 }
             },
-        "additionalProperties": "false",
         "required": ["food"]
         },
     },
@@ -340,10 +321,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description": "The specific toilet to flush. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The specific toilet to flush."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -355,10 +335,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "string",
-                    "description": "The task object to send signal intent. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The task object to send signal intent."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -373,7 +352,6 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
                     "description": "The number of iterations you choose to wait."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -388,7 +366,6 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
                     "description": "The number of the action you intended."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -400,10 +377,9 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type": "int",
-                    "description": "The objects present on or in a receptacle. It should be chosen based on the previous obervation and your task. Please choose carefully."
+                    "description": "The objects present on or in a receptacle."
                 }
             },
-        "additionalProperties": "false",
         "required": ["obj"]
         },
     },
@@ -413,7 +389,6 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
         "parameters": {
             "type": "object",
             "properties": {},
-            "additionalProperties": "false"
         }
     },
     {
@@ -422,7 +397,6 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
         "parameters": {
             "type": "object",
             "properties": {},
-            "additionalProperties": "false"
         }
     },
 ]
@@ -539,7 +513,7 @@ class SciWorldAdapter(BaseAdapter):
 
         if fn_name not in SciWorldAdapter.valid_functions_args:
             raise ValueError("Invalid function name.")
-        arg_ls = SciWorldAdapter.function_to_name[fn_name]
+        arg_ls = SciWorldAdapter.valid_functions_args[fn_name]
         if len(args) == 1:
             # read recipe
             action_name = SciWorldAdapter.function_to_name[fn_name]
