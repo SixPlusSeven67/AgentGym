@@ -15,7 +15,22 @@ from agentenv.controller import (
     Llama2Template,
     Llama3Template,
 )
-from agentenv.envs import WebshopTask
+from agentenv.envs import (
+    AcademiaTask,
+    AlfWorldTask,
+    BabyAITask,
+    MazeTask,
+    MovieTask,
+    SciworldTask,
+    SheetTask,
+    SqlGymTask,
+    TextCraftTask,
+    TodoTask,
+    WeatherTask,
+    WebarenaTask,
+    WebshopTask,
+    WordleTask,
+)
 
 
 @dataclass
@@ -40,22 +55,23 @@ class EvalArguments:
     timeout: int = field(default=2400)
     chat_template: str = field(default="llama2")
     use_vllm: bool = field(default=False)
+    action_format: str = field(default="default")
 
 
-def main():
-    parser = transformers.HfArgumentParser(EvalArguments)
-    (args,) = parser.parse_args_into_dataclasses()
-    args = vars(args)
-    print(args)
-    print(json.dumps(args, indent=2, ensure_ascii=False))
+def main(args):
 
     MODEL_PATH = args["model_path"]
     DATA_PATH = args["inference_file"]
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL_PATH, device_map="auto", trust_remote_code=True
-    ).eval()
+    if args["use_vllm"]:
+        model = AutoModelForCausalLM.from_pretrained(
+            MODEL_PATH, trust_remote_code=True
+        ).eval()
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            MODEL_PATH, device_map="auto", trust_remote_code=True
+        ).eval()
 
     template_classes = {
         "chatglm4": ChatGLM4Template,
@@ -68,21 +84,33 @@ def main():
     # task_name - task dict
     task_classes = {
         "webshop": WebshopTask,
+        "alfworld": AlfWorldTask,
+        "babyai": BabyAITask,
+        "sciworld": SciworldTask,
+        "textcraft": TextCraftTask,
+        "webarena": WebarenaTask,
+        "sqlgym": SqlGymTask,
+        "maze": MazeTask,
+        "wordle": WordleTask,
+        "weather": WeatherTask,
+        "todo": TodoTask,
+        "movie": MovieTask,
+        "sheet": SheetTask,
+        "academia": AcademiaTask,
     }
-    # adapter_classes = {"webshop": WebshopAdapter}
 
     # select task according to the name
     task_class = task_classes.get(args["task_name"].lower(), None)
     if task_class is None:
         raise ValueError(f"Unsupported task name: {args.task_name}")
-    # adapter_class = adapter_classes.get(args["task_name"].lower(), None)
 
     # set environment parameters
+    assert args["action_format"] in ("default", "function_calling", "code_as_action")
     env_args = {
         "env_server_base": args["env_server_base"],
         "data_len": args["data_len"],
         "timeout": args["timeout"],
-        "action_format": "function_calling",
+        "action_format": args["action_format"],
     }
 
     # set env client
@@ -99,7 +127,7 @@ def main():
     with open(DATA_PATH, "r") as file:
         test_data = json.load(file)
 
-    data_idxs = [[int(item["item_id"].split("_")[-1])] for item in test_data]
+    data_idxs = [int(item["item_id"].split("_")[-1]) for item in test_data]
 
     total_score = 0.0
     total_success = 0.0
@@ -116,7 +144,7 @@ def main():
                 ),
             ),
             max_rounds=args["max_round"],
-            idxs=data_idx,
+            idxs=[data_idx],
         )
         total_score += exps.score
         total_success += exps.success
@@ -148,4 +176,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = transformers.HfArgumentParser(EvalArguments)
+    (args,) = parser.parse_args_into_dataclasses()
+    args = vars(args)
+    print(args)
+    print(json.dumps(args, indent=2, ensure_ascii=False))
+    main(args)

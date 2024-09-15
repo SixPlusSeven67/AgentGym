@@ -1,4 +1,5 @@
 import gc
+import os
 import random
 import shutil
 from abc import ABCMeta, abstractmethod
@@ -68,6 +69,7 @@ class Agent:
         else:
             model = self.model
         if self.inference_engine == InferenceEngine.VLLM:
+            os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
             from vllm import LLM, SamplingParams
 
             if not refresh_engine and self._vllm is not None:
@@ -88,13 +90,19 @@ class Agent:
                 tp_size = torch.cuda.device_count()
 
                 torch.cuda.empty_cache()
-                llm = LLM(
-                    shm_path,
-                    tensor_parallel_size=tp_size,
-                    enable_prefix_caching=True,
-                    use_v2_block_manager=True,
-                    disable_custom_all_reduce=True,
-                )
+                try:
+                    llm = LLM(
+                        shm_path,
+                        tensor_parallel_size=tp_size,
+                        enable_prefix_caching=True,
+                        use_v2_block_manager=True,
+                        disable_custom_all_reduce=True,
+                    )
+                except Exception as e:
+                    print(e)
+                    print("Fail to create vLLM engine.")
+                    exit(-1)
+
                 self._vllm = llm
                 shutil.rmtree(shm_path)
 
@@ -116,7 +124,6 @@ class Agent:
                 "min_p": generation_config.min_p,
                 "length_penalty": generation_config.length_penalty,
                 "early_stopping": generation_config.early_stopping,
-                "stop_strings": generation_config.stop_strings,
                 "max_tokens": max_tokens,
                 "min_new_tokens": generation_config.min_new_tokens,
             }
