@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Optional, Sequence
 
 import numpy as np
@@ -13,7 +14,9 @@ from .types import (
     ExperienceOutput,
 )
 
-INVOKING_FUNCTION_PROMPT = """If you want to invoke a provided function or tool, please reply in the following *JSON* format:
+INVOKING_FUNCTION_PROMPT = """
+
+If you want to invoke a provided function or tool, please reply in the following *JSON* format:
 ```json
 {
     "thought": "I think ...",
@@ -24,6 +27,15 @@ INVOKING_FUNCTION_PROMPT = """If you want to invoke a provided function or tool,
 Only reply the *JSON* object, no other text should be present.
 """
 
+WRITE_CODE_PROMPT = """
+
+If you want to call these functions, please reply the python code block:
+```python
+# Write you thought in the code comment before you call any function.
+<write valid python code here.>
+```
+Only reply the code block with "```python" and "```",  no other text should be present.
+"""
 
 def format_function_call_prompt(function_description: Sequence) -> str:
     prompt = "You have the following functions available:\n\n"
@@ -35,6 +47,65 @@ def format_function_call_prompt(function_description: Sequence) -> str:
     prompt += INVOKING_FUNCTION_PROMPT
 
     return prompt
+
+
+def generate_function_signatures(function_descriptions: Sequence):
+    function_strings = []
+    for func in function_descriptions:
+        name = func["name"]
+        description = func["description"]
+        params = func["parameters"]["properties"]
+        required_params = func["parameters"].get("required", [])
+
+        # Generate function signature
+        signature_params = ", ".join(
+            [
+                f"{param}='{param}'" if param not in required_params else param
+                for param in params
+            ]
+        )
+        function_signature = f"def {name}({signature_params}):"
+
+        # Generate docstring
+        docstring = f'    """\n    {description}\n\n'
+        for param, details in params.items():
+            docstring += (
+                f"    :param {param} ({details['type']}): {details['description']}\n"
+            )
+        docstring += '    """'
+
+        # Combine signature and docstring
+        function_strings.append(f"{function_signature}\n{docstring}\n")
+
+    return "\n".join(function_strings)
+
+
+def format_code_as_action_prompt(function_description: Sequence) -> str:
+    prompt = "Here are the signatures and docstrings of these functions:\n\n```python\n"
+    prompt += generate_function_signatures(function_description)
+    prompt += "\n```"
+    prompt += WRITE_CODE_PROMPT
+
+    return prompt
+
+
+_python_comment_pattern = re.compile(r"#.*")
+
+
+def parse_python_code_comments(code: str) -> str:
+    comments = _python_comment_pattern.findall(code)
+    comments = [c.strip() for c in comments]
+    comments = [c if c else "\n" for c in comments]
+    return " ".join(comments)
+
+
+def extract_python_code_blocks(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[-1]
+    if text.endswith("```"):
+        text = text.rsplit("\n", 1)[0]
+    return text
 
 
 class BaseAdapter:
@@ -121,9 +192,7 @@ class BaseAdapter:
         raise NotImplementedError
 
     @classmethod
-    def action_parser(
-        cls, action: str, action_format: ActionFormat
-    ) -> str | tuple[str, str]:
+    def action_parser(cls, action: str, action_format: ActionFormat) -> str:
         if action_format == ActionFormat.REACT:
             return cls.parse_react(action).action
         elif action_format == ActionFormat.FUNCTION_CALLING:
