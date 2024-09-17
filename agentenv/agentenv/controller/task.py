@@ -45,7 +45,7 @@ class BaseTask:
             ConversationMessage({"from": "human", "loss": None, "value": state})
         )
         conversation_tokenized = agent.chat_template.tokenize_conversation(
-            conversation, tokenizer
+            conversation, tokenizer, add_generation_prompt=True
         )
         rounds = 0
 
@@ -89,7 +89,7 @@ class BaseTask:
                 {"from": "human", "loss": None, "value": state}
             )
             env_message_tokenized = agent.chat_template.tokenize_conversation_one(
-                env_message, tokenizer
+                env_message, tokenizer, add_generation_prompt=True
             )
 
             conversation.append(env_message)

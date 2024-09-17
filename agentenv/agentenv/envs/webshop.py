@@ -7,7 +7,10 @@ from agentenv.controller import (
     BaseAdapter,
     BaseEnvClient,
     BaseTask,
+    extract_python_code_blocks,
+    format_code_as_action_prompt,
     format_function_call_prompt,
+    parse_python_code_comments,
 )
 from agentenv.controller.types import (
     ActionFormat,
@@ -47,7 +50,6 @@ WEBSHOP_FUNCTION_DESCRIPTION = [
     },
 ]
 
-
 class WebshopAdapter(BaseAdapter):
     conversation_start_dict = {
         ActionFormat.REACT: (
@@ -75,7 +77,7 @@ class WebshopAdapter(BaseAdapter):
                 {
                     "from": "human",
                     "loss": None,
-                    "value": "TODO: Add instructions for code as action",
+                    "value": f"You are web shopping.\nI will give you instructions about what to do.\nYou have to follow the instructions.\nEvery round I will give you an observation and a list of available actions, you have to respond an action based on the state and instruction.\nYou can use search action if search is available.\nYou can click one of the buttons in clickables.\nYou can perform one of these actions by writing python code to invoke a function.\n\n{format_code_as_action_prompt(WEBSHOP_FUNCTION_DESCRIPTION)}\n\n\nIf the page remains unchanged, it might indicate that your action is invalid.",
                 }
             ),
             ConversationMessage({"from": "gpt", "loss": False, "value": "Ok."}),
@@ -118,13 +120,31 @@ class WebshopAdapter(BaseAdapter):
             indent=2,
         )
 
-    # @staticmethod
-    # def parse_code_as_action(text: str) -> ActionWithTought:
-    #     pass
+    @staticmethod
+    def parse_code_as_action(text: str) -> ActionWithTought:
+        def search(keywords: str):
+            return f"search[{keywords}]"
 
-    # @staticmethod
-    # def to_code_as_action(action_with_thought: ActionWithTought) -> str:
-    #     pass
+        def click(item: str):
+            return f"click[{item}]"
+
+        text = extract_python_code_blocks(text)
+        try:
+            action = eval(text, {}, {"search": search, "click": click})
+        except Exception as e:
+            raise ValueError("Invalid action.") from e
+        thought = parse_python_code_comments(text)
+        return ActionWithTought(thought=thought, action=action)
+
+    @staticmethod
+    def to_code_as_action(action_with_thought: ActionWithTought) -> str:
+        text = f"```python\n# {action_with_thought.thought}\n"
+        if action_with_thought.action.startswith("search"):
+            text += f"search({repr(action_with_thought.action.split('[')[-1].split(']')[0])})"
+        elif action_with_thought.action.startswith("click"):
+            text += f"click({repr(action_with_thought.action.split('[')[-1].split(']')[0])})"
+        text += "\n```"
+        return text
 
 
 class WebshopEnvClient(BaseEnvClient):
@@ -191,6 +211,7 @@ class WebshopEnvClient(BaseEnvClient):
             action = action[:-5]
         try:
             action = WebshopAdapter.action_parser(action, self.action_format)
+            print(action)
         except Exception as e:
             print(e, action)
             return StepOutput(
