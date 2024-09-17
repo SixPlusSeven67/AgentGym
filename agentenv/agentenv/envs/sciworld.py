@@ -523,7 +523,7 @@ class SciWorldAdapter(BaseAdapter):
             elif fn_name == "choose":
                 action = f'{arg}'
             else:
-                f'{action_name} {arg}'
+                action = f'{action_name} {arg}'
         elif len(args) == 0:
             # look around
             action = f'{SciWorldAdapter.function_to_name[fn_name]}'
