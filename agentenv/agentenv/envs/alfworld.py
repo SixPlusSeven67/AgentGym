@@ -386,15 +386,130 @@ class AlfWorldAdapter(BaseAdapter):
             },
             ensure_ascii=False,
             indent=2,
-        ) 
+        )
     
-    # @staticmethod
-    # def parse_code_as_action(text: str) -> ActionWithTought:
-    #     pass
+    @staticmethod
+    def parse_code_as_action(text: str) -> ActionWithTought:
+        def goto(recep: str):
+            action_name = AlfWorldAdapter.function_to_name["goto"]
+            return f"{action_name} {recep}"
+        
+        def take(obj: str, recep: str):
+            action_name = AlfWorldAdapter.function_to_name["take"]
+            conjunction = AlfWorldAdapter.conjunction_words["take"]
+            return f"{action_name} {obj} {conjunction} {recep}"
+        
+        def put(obj: str, recep: str):
+            action_name = AlfWorldAdapter.function_to_name["put"]
+            conjunction = AlfWorldAdapter.conjunction_words["put"]
+            return f"{action_name} {obj} {conjunction} {recep}"
+        
+        def toggle(recep: str):
+            action_name = AlfWorldAdapter.function_to_name["toggle"]
+            return f"{action_name} {recep}"
+        
+        def open(recep: str):
+            action_name = AlfWorldAdapter.function_to_name["open"]
+            return f"{action_name} {recep}"
+        
+        def close(recep: str):
+            action_name = AlfWorldAdapter.function_to_name["close"]
+            return f"{action_name} {recep}"
+        
+        def heat(obj: str, recep: str):
+            action_name = AlfWorldAdapter.function_to_name["heat"]
+            conjunction = AlfWorldAdapter.conjunction_words["heat"]
+            return f"{action_name} {obj} {conjunction} {recep}"
+        
+        def cool(obj: str, recep: str):
+            action_name = AlfWorldAdapter.function_to_name["cool"]
+            conjunction = AlfWorldAdapter.conjunction_words["cool"]
+            return f"{action_name} {obj} {conjunction} {recep}"
+        
+        def clean(obj: str, recep: str):
+            action_name = AlfWorldAdapter.function_to_name["clean"]
+            conjunction = AlfWorldAdapter.conjunction_words["clean"]
+            return f"{action_name} {obj} {conjunction} {recep}"
+        
+        def examine(recep: str, obj: str=''): # obj is optional
+            action_name = AlfWorldAdapter.function_to_name["examine"]
+            conjunction = AlfWorldAdapter.conjunction_words["examine"]
+            return f"{action_name} {recep} {conjunction} {obj}" if obj else f"{action_name} {recep}"
+        
+        def inventory():
+            action_name = AlfWorldAdapter.function_to_name["inventory"]
+            return f"{action_name}"
+        
+        def look():
+            action_name = AlfWorldAdapter.function_to_name["look"]
+            return f"{action_name}"
+        
+        def use(obj:str):
+            action_name = AlfWorldAdapter.function_to_name["use"]
+            return f"{action_name} {obj}"
+        code = extract_python_code_blocks(text)
 
-    # @staticmethod
-    # def to_code_as_action(action_with_thought: ActionWithTought) -> str:
-    #     pass
+        try:
+            action = eval(code, {
+                "goto": goto,
+                "take": take,
+                "put": put,
+                "toggle": toggle,
+                "open": open,
+                "close": close,
+                "heat": heat,
+                "cool": cool,
+                "clean": clean,
+                "examine": examine,
+                "inventory": inventory,
+                "look": look,
+                "use": use
+            })
+        except Exception as e:
+            print(e)
+            raise ValueError(f"Invalid action:{code}")
+        thought = parse_python_code_comments(code)
+        return ActionWithTought(thought=thought, action=action)
+
+
+    @staticmethod
+    def to_code_as_action(action_with_thought: ActionWithTought) -> str:
+        text = f"```python\n#{action_with_thought.thought}\n"
+        valid_action_flag = False
+        fn_name = ''
+        action_name = ''
+        for k, v in AlfWorldAdapter.function_to_name.items():
+            if action_with_thought.action.startswith(v):
+                valid_action_flag = True
+                fn_name = k
+                action_name = v
+                break
+        if not valid_action_flag:
+            raise ValueError(f"{action_with_thought.action}: Invalid action.")
+        # inventory
+        # open door to kitchen / toggle switch wall
+        # heat mug with microwave 
+        arg_ls = AlfWorldAdapter.valid_functions_args[fn_name]
+        str_arg = action_with_thought.action.replace(action_name, '', 1).strip()
+        if fn_name in AlfWorldAdapter.conjunction_words:
+            separator = AlfWorldAdapter.conjunction_words[fn_name]
+            str_arg_ls = re.split(fr'\s+{separator}\s+', str_arg)
+            str_arg_ls = [s.strip() for s in str_arg_ls]
+        else:
+            str_arg_ls = [str_arg.strip()] if len(str_arg) else []
+        
+        if len(str_arg_ls) > len(arg_ls):
+            raise TypeError(f"Got unexpected arguments. function {fn_name} expected {len(arg_ls)} but got {len(str_arg_ls)}.")
+
+        if len(str_arg_ls) == 0:
+            text += f"{fn_name}()"
+        elif len(str_arg_ls) == 1:
+            text += f"{fn_name}({repr(f'{str_arg_ls[0]}')})"
+        else:
+            text += f"{fn_name}({repr(f'{str_arg_ls[0]}')},{repr(f'{str_arg_ls[1]}')})"
+        text += "\n```"
+        return text
+        
 
 
 class AlfWorldEnvClient(BaseEnvClient):

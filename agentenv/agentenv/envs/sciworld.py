@@ -606,13 +606,156 @@ class SciWorldAdapter(BaseAdapter):
             indent=2,
         )
     
-    # @staticmethod
-    # def parse_code_as_action(text: str) -> ActionWithTought:
-    #     pass
+    @staticmethod
+    def parse_code_as_action(text: str) -> ActionWithTought:
+        def open(obj: str):
+            return f"open {obj}"
+        
+        def close(obj: str):
+            return f"close {obj}"
+        
+        def activate(obj: str):
+            return f"activate {obj}"
+        
+        def deactivate(obj: str):
+            return f"deactivate {obj}"
+        
+        def connect(obj1: str, obj2: str):
+            return f"connect {obj1} {SciWorldAdapter.conjunction_words["connect"]} {obj2}"
+        
+        def disconnect(obj: str):
+            return f"disconnect {obj}"
+        
+        def use(tool: str, obj: str=''):
+            return f"use {tool} {SciWorldAdapter.conjunction_words["use"]} {obj}" if obj else f"use {tool}"
+        
+        def lookaround():
+            return f"look around"
+        
+        def lookat(obj: str):
+            return f"look at {obj}" 
+        
+        def read(obj: str):
+            return f"read {obj}"
+        
+        def move(obj: str, container: str):
+            return f"connect {obj} {SciWorldAdapter.conjunction_words["move"]} {container}"
+        
+        def pickup(obj: str):
+            return f"pick up {obj}" 
+        
+        def drop(obj: str):
+            return f"drop {obj}" 
+        
+        def pour(liq: str, container: str):
+            return f"pour {liq} {SciWorldAdapter.conjunction_words["pour"]} {container}" 
+        
+        def dunk(container: str, liq: str):
+            return f"dunk {container} {SciWorldAdapter.conjunction_words["dunk"]} {liq}" 
+        
+        def mix(container: str):
+            return f"mix {container}" 
+        
+        def goto(loc: str):
+            return f"go to {loc}" 
+        
+        def eat(food: str):
+            return f"eat {food}" 
+        
+        def flush(obj: str):
+            return f"flush {obj}"
+        
+        def focus(obj: str):
+            return f"focus on {obj}"
+        
+        def wait(duration: str):
+            return f"wait{duration}"
+        
+        def choose(option: str):
+            return f"{option}"
+        
+        def examine(obj: str):
+            return f"examine {obj}"
+        
+        def task():
+            return f"task"
+        
+        def inventory():
+            return f"inventory"
+        
+        code = extract_python_code_blocks(text)
+        try:
+            action = eval(code, {
+                "open": open,
+                "close" : close,
+                "activate": activate,
+                "deactivate": deactivate,
+                "connect": connect,
+                "disconnect": disconnect,
+                "use": use,
+                "lookaround": lookaround,
+                "lookat": lookat,
+                "read": read,
+                "move": move,
+                "pickup": pickup,
+                "drop": drop,
+                "pour": pour,
+                "dunk": dunk,
+                "mix": mix,
+                "goto": goto,
+                "eat": eat,
+                "flush": flush,
+                "focus": focus,
+                "wait": wait,
+                "choose": choose,
+                "examine": examine,
+                "task": task,
+                "inventory": inventory
+            })
+        except Exception as e:
+            raise ValueError(f"Invalid action:{code}") from e  
+        thought = parse_python_code_comments(code)
+        return ActionWithTought(thought=thought, action=action)
 
-    # @staticmethod
-    # def to_code_as_action(action_with_thought: ActionWithTought) -> str:
-    #     pass
+    @staticmethod
+    def to_code_as_action(action_with_thought: ActionWithTought) -> str:
+        text = f"```python\n#{action_with_thought.thought}\n"
+        valid_action_flag = False
+        fn_name = ''
+        action_name = ''
+        for k, v in SciWorldAdapter.function_to_name.items():
+            if action_with_thought.action.startswith(v):
+                valid_action_flag = True
+                fn_name = k
+                action_name = v
+                break
+        if action_with_thought.action.isdigit():
+            fn_name = 'choose'
+        elif not valid_action_flag:
+            raise ValueError(f"{action_with_thought.action}: Invalid action.")
+        # inventory
+        # look at mug/ wait1/ open door to kitchen
+        # pour milk into mug
+        arg_ls = SciWorldAdapter.valid_functions_args[fn_name]
+        str_arg = action_with_thought.action.replace(action_name, '', 1).strip()
+        if fn_name in SciWorldAdapter.conjunction_words:
+            separator = SciWorldAdapter.conjunction_words[fn_name]
+            str_arg_ls = re.split(fr'\s+{separator}\s+', str_arg)
+            str_arg_ls = [s.strip() for s in str_arg_ls]
+        else:
+            str_arg_ls = [str_arg.strip()] if len(str_arg) else []
+
+        if len(str_arg_ls) > len(arg_ls):
+            raise TypeError(f"Got unexpected arguments. function {fn_name} expected {len(arg_ls)} but got {len(str_arg_ls)}.")
+
+        if len(str_arg_ls) == 0:
+            text += f"{fn_name}()"
+        elif len(str_arg_ls) == 1:
+            text += f"{fn_name}({repr(f'{str_arg_ls[0]}')})" if fn_name != "wait" else f"{fn_name}({repr(re.findall(r'\d+', str_arg_ls[0])[0])})"
+        else:
+            text += f"{fn_name}({repr(f'{str_arg_ls[0]}')},{repr(f'{str_arg_ls[1]}')})"
+        text += "\n```"
+        return text
 
 class SciworldEnvClient(BaseEnvClient):
     adapter_cls = SciWorldAdapter
