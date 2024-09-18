@@ -139,10 +139,11 @@ class Agent:
                 sampling_params=sampling_params,
                 use_tqdm=False,
             )
-            generated_tokens = [
-                o.outputs[0].token_ids.tolist()
-                for o in output  # pylint: disable=E1133:not-an-iterable
-            ]
+
+            generated_tokens = []
+
+            for o in output:
+                generated_tokens.append(list(o.outputs[0].token_ids))
 
         else:
             output = model.generate(

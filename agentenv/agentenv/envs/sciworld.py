@@ -4,14 +4,19 @@ from typing import Any, Mapping
 import requests
 from requests.exceptions import RequestException
 from agentenv.controller import (
-    ActionFormat,
-    ActionWithTought,
     BaseAdapter,
     BaseEnvClient,
     BaseTask,
+    extract_python_code_blocks,
+    format_code_as_action_prompt,
+    format_function_call_prompt,
+    parse_python_code_comments,
+)
+from agentenv.controller.types import (
+    ActionFormat,
+    ActionWithTought,
     ConversationMessage,
     StepOutput,
-    format_function_call_prompt,
 )
 from agentenv.controller.types import ConversationMessage, StepOutput
 
@@ -435,6 +440,22 @@ class SciWorldAdapter(BaseAdapter):
                     "value": "OK. I'll follow your instructions and try my best to solve the task.",
                 }
             ),
+        ),
+        ActionFormat.CODE_AS_ACTION: (
+            ConversationMessage(
+                {
+                    "from": "human",
+                    "loss": None,
+                    "value": f'You are an agent for science world. Every round I will give you an observation, you have to respond an action based on the observation to finish the given task. You can perform one of these actions by writing python code to invoke a function.\n\n {format_function_call_prompt(SCIWORLD_FUNCTION_DESCRIPTION)}\n\n\nAfter your each turn, the environment will give you immediate feedback based on your taken actions. if the envrionment output \"No known action matches that input.\", that means the previous action is invalid and you should try more options.\n Reminder: \n1. the action must be chosen from the given functions. The objects you choose must exist in the current room. Any actions except provided available actions will be regarded as illegal. \n2. Think when necessary, try to act directly more in the process.',
+                }
+            ),
+            ConversationMessage(
+                {
+                    "from": "gpt",
+                    "loss": False,
+                    "value": "OK. I'll follow your instructions and try my best to solve the task.",
+                }
+            ),
         )
     }
 
@@ -560,6 +581,9 @@ class SciWorldAdapter(BaseAdapter):
             str_arg_ls = [s.strip() for s in str_arg_ls]
         else:
             str_arg_ls = [str_arg.strip()] if len(str_arg) else []
+
+        if len(str_arg_ls) > len(arg_ls):
+            raise TypeError(f"Got unexpected arguments. function {fn_name} expected {len(arg_ls)} but got {len(str_arg_ls)}.")
 
         if len(str_arg_ls) == 0:
             args = {}

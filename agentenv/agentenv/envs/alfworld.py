@@ -6,14 +6,19 @@ import requests
 from requests.exceptions import RequestException
 
 from agentenv.controller import (
-    ActionFormat,
-    ActionWithTought,
     BaseAdapter,
     BaseEnvClient,
     BaseTask,
+    extract_python_code_blocks,
+    format_code_as_action_prompt,
+    format_function_call_prompt,
+    parse_python_code_comments,
+)
+from agentenv.controller.types import (
+    ActionFormat,
+    ActionWithTought,
     ConversationMessage,
     StepOutput,
-    format_function_call_prompt,
 )
 
 from agentenv.controller import BaseEnvClient, BaseTask
@@ -182,7 +187,6 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
         "parameters": {
             "type": "object",
             "properties": {},
-            "additionalProperties": "false"
         }
     },
     {
@@ -211,23 +215,13 @@ ALFWORLD_FUNCTION_DESCRIPTION = [
             "properties":{
                 "obj":{
                     "type":"string",
-                    "description":"The object(like a desklamp in order to look clearly) you want use to examine a receptacle.",
+                    "description":"The object(like a desklamp in order to look clearly) you want use.",
                 },  
             },
             "required":["obj"],
         }
     }
 ]
-
-class recep:
-    def __init__(self, name: str, id: int) -> None:
-        self.name = name
-        self.id = id
-
-class obj:
-    def __init__(self, name: str, id: int) -> None:
-        self.name = name
-        self.id = id
 
 class AlfWorldAdapter(BaseAdapter):
     conversation_start_dict = {
@@ -268,7 +262,7 @@ class AlfWorldAdapter(BaseAdapter):
                 {
                     "from": "human",
                     "loss": None,
-                    "value": "TODO: Add instructions for code as action",
+                    "value": f'Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. For each of your turn, you will be given a list of actions which you can choose one to perform in this turn. Note that you should not choose actions and objects/receptacles not listed in the first turn. You can perform one of these actions by writing python code to invoke a function.\n\n {format_function_call_prompt(ALFWORLD_FUNCTION_DESCRIPTION)}\n\n\nAfter your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the envrionment output \"Nothing happened\", that means the previous action is invalid and you should try more options.\n Reminder: \n1. the action must be chosen from the given available actions. Any actions except provided available actions will be regarded as illegal. \n2. Think when necessary, try to act directly more in the process.',
                 }
             ),
             ConversationMessage({"from": "gpt", "loss": False, "value": "Ok."}),
@@ -371,9 +365,6 @@ class AlfWorldAdapter(BaseAdapter):
             str_arg_ls = [str_arg.strip()] if len(str_arg) else []
         
         if len(str_arg_ls) > len(arg_ls):
-            raise TypeError(f"Got unexpected arguments. Function {fn_name} has {len(arg_ls)} argument(s) but got {len(str_arg_ls)}.")
-
-        if len(str_arg_ls) > len(arg_ls):
             raise TypeError(f"Got unexpected arguments. function {fn_name} expected {len(arg_ls)} but got {len(str_arg_ls)}.")
 
         if len(str_arg_ls) == 0:
@@ -395,7 +386,7 @@ class AlfWorldAdapter(BaseAdapter):
             },
             ensure_ascii=False,
             indent=2,
-        )
+        ) 
     
     # @staticmethod
     # def parse_code_as_action(text: str) -> ActionWithTought:
@@ -463,7 +454,7 @@ class AlfWorldEnvClient(BaseEnvClient):
         if action.endswith("</s>"):
             action = action[:-5]
         try:
-            self.adapter_cls.action_parser(action, self.action_format)
+            action = self.adapter_cls.action_parser(action, self.action_format)
         except Exception as e:
             print(e, action)
             return StepOutput(
