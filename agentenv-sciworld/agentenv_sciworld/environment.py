@@ -109,11 +109,6 @@ class SciWorldEnv:
             raise ValueError(f"The task with environment {idx} has been deleted.")
         if not is_reset and self.info[idx]["done"]:
             raise ValueError(f"The task with environment {idx} has finished.")
-        
-    def __del__(self):
-        for idx in self.ls:
-            self.env[idx].close
-            print(f"-------Env {idx} closed--------")
 
 
 server = SciWorldEnv()

@@ -787,12 +787,14 @@ class BabyAIEnv:
         self._max_id = 0
         self.env = {}
         self.info = {}
+        self.ls = []
         self.games = []
 
     def create(self):
         try:
             idx = self._max_id
             self.info[idx] = {"deleted": False, "done": False}
+            self.ls.append(idx)
             self._max_id += 1
             return {"id": idx}
         except Exception as e:
@@ -849,6 +851,11 @@ class BabyAIEnv:
             raise ValueError(f"The task with environment {idx} has been deleted.")
         if not is_reset and self.info[idx]["done"]:
             raise ValueError(f"The task with environment {idx} has finished.")
+        
+    def __del__(self):
+        for idx in self.ls:
+            self.env[idx].close()
+            print(f"-----Env {idx} closed-----")
 
 
 server = BabyAIEnv()
