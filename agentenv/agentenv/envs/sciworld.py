@@ -376,13 +376,13 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
     },
     {
         "name": "examine",
-        "description": "Provides a description of the objects present on or in a receptacle.",
+        "description": "Provides a description of the objects. You may call this function if you want to know what kind of substance the object is.",
         "parameters":{
             "type": "object",
             "properties":{
                 "obj":{
                     "type": "int",
-                    "description": "The objects present on or in a receptacle."
+                    "description": "The objects you want to get some description of."
                 }
             },
         "required": ["obj"]
@@ -390,7 +390,7 @@ SCIWORLD_FUNCTION_DESCRIPTION = [
     },
     {
         "name": "task",
-        "description": "Describe current task. Call this function if you have to confirm it.",
+        "description": "Describe the current task. Call this function if you have to confirm it.",
         "parameters": {
             "type": "object",
             "properties": {},
