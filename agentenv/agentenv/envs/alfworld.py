@@ -316,7 +316,7 @@ class AlfWorldAdapter(BaseAdapter):
             "{" + text.split("{", 1)[-1].rsplit("}", 1)[0] + "}", strict=False
         )
         thought = _fn_call["thought"]
-        fn_name = _fn_call["function_name"]
+        fn_name = _fn_call["function_name"].strip()
         args = _fn_call["arguments"]
 
         if fn_name not in AlfWorldAdapter.valid_functions_args:

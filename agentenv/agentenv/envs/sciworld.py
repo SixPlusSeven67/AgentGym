@@ -529,7 +529,7 @@ class SciWorldAdapter(BaseAdapter):
             "{" + text.split("{", 1)[-1].rsplit("}", 1)[0] + "}", strict=False
         )
         thought = _fn_call["thought"]
-        fn_name = _fn_call["function_name"]
+        fn_name = _fn_call["function_name"].strip()
         args = _fn_call["arguments"]
 
         if fn_name not in SciWorldAdapter.valid_functions_args:
@@ -763,6 +763,7 @@ class SciWorldAdapter(BaseAdapter):
         # inventory
         # look at mug/ wait1/ open door to kitchen
         # pour milk into mug
+        fn_name = fn_name.strip()
         arg_ls = SciWorldAdapter.valid_functions_args[fn_name]
         str_arg = action_with_thought.action.replace(action_name, '', 1).strip()
         if fn_name in SciWorldAdapter.conjunction_words:
