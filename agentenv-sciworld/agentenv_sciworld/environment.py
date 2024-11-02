@@ -8,6 +8,7 @@ class SciWorldEnv:
         self.env = {}
         self.info = {}
         self.games = []
+        self.ls = []
 
     def create(self):
         try:
@@ -24,6 +25,7 @@ class SciWorldEnv:
                         {"taskName": value, "variationIdx": i}
                         for i in range(self.env[idx].getMaxVariations(value))
                     ]
+            self.ls.append(idx)
             print(f"-------Env {idx} created--------")
             return {"id": idx}
         except Exception as e:
