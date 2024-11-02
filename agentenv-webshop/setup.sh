@@ -1,6 +1,11 @@
 cd ./webshop
 pip install -r requirements.txt
-pip install -U "Werkzeug>=2,<3" "mkl>=2021,<2022" "typing_extensions<4.6.0" "gym==0.23.1"
+pip install -U "Werkzeug>=2,<3"
+pip install -U "mkl>=2021,<2022"
+pip install -U "typing_extensions<4.6.0"
+pip install -U "gym==0.23.1"
+pip install -U numpy
+
 python -m spacy download en_core_web_lg
 
 cd search_engine
@@ -9,4 +14,5 @@ python convert_product_file_format.py # convert items.json => required doc forma
 mkdir -p indexes
 bash ./run_indexing.sh
 cd ../..
+
 pip install -e .
