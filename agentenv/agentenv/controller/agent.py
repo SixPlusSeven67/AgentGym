@@ -18,10 +18,15 @@ try:
 except ImportError:
     torch_npu = None
 
+
 class BaseChatTemplate(metaclass=ABCMeta):
     @abstractmethod
     def tokenize_conversation_one(
-        self, message: ConversationMessage, tokenizer: PreTrainedTokenizerBase, idx: int, add_generation_prompt: bool = False
+        self,
+        message: ConversationMessage,
+        tokenizer: PreTrainedTokenizerBase,
+        idx: int,
+        add_generation_prompt: bool = False,
     ) -> TokenizedConversationOutput:
         raise NotImplementedError
 
@@ -29,16 +34,18 @@ class BaseChatTemplate(metaclass=ABCMeta):
         self,
         conversation: list[ConversationMessage],
         tokenizer: PreTrainedTokenizerBase,
-        add_generation_prompt: bool = False
-    ) -> TokenizedConversationOutput:        
-        text=""
-        input_ids=[]
-        action_mask=[]
+        add_generation_prompt: bool = False,
+    ) -> TokenizedConversationOutput:
+        text = ""
+        input_ids = []
+        action_mask = []
         for idx, message in enumerate(conversation):
-            res = self.tokenize_conversation_one(message, tokenizer, idx, add_generation_prompt)
-            text+=res["text"]
-            input_ids+=res["input_ids"]
-            action_mask+=res["action_mask"]
+            res = self.tokenize_conversation_one(
+                message, tokenizer, idx, add_generation_prompt
+            )
+            text += res["text"]
+            input_ids += res["input_ids"]
+            action_mask += res["action_mask"]
         return TokenizedConversationOutput(
             {
                 "text": text,
@@ -163,10 +170,10 @@ class Agent:
                 use_tqdm=False,
             )
 
-            generated_tokens = [
-                list(o.outputs[0].token_ids)
-                for o in output  # pylint: disable=E1133:not-an-iterable
-            ]
+            generated_tokens = []
+
+            for o in output:
+                generated_tokens.append(list(o.outputs[0].token_ids))
 
         else:
             output = model.generate(
@@ -227,12 +234,12 @@ class ChatMLTemplate(BaseChatTemplate):
         This function applied Llama Chat template on the given vicuna-styled conversation message.
         You can provide your own _tokenize_conversation_one to adapt to your own task.
         """
-        if(idx==0 and message['from']!="system"):
-            text="<|im_start|>system\nYou are a helpful assistant<|im_end|>\n"
+        if idx == 0 and message["from"] != "system":
+            text = "<|im_start|>system\nYou are a helpful assistant<|im_end|>\n"
         else:
-            text=""
+            text = ""
         if add_generation_prompt:
-            if message["from"] == "human":                
+            if message["from"] == "human":
                 text += f"<|im_start|>user\n{message['value']}<|im_end|>\n<|im_start|>assistant\n"
                 input_ids = tokenizer.encode(text, add_special_tokens=False)
             else:
@@ -240,7 +247,7 @@ class ChatMLTemplate(BaseChatTemplate):
                 input_ids = tokenizer.encode(text, add_special_tokens=False)
                 # text = f" {text}"
         else:
-            if message["from"] == "human":                
+            if message["from"] == "human":
                 text += f"<|im_start|>user\n{message['value']}<|im_end|>\n"
                 input_ids = tokenizer.encode(text, add_special_tokens=False)
             else:
@@ -270,32 +277,32 @@ class Llama3Template(BaseChatTemplate):
         idx: int = -1,
         add_generation_prompt: bool = False,
     ) -> TokenizedConversationOutput:
-        val=message["value"]
-        while len(val) and val[-1] in [" ","\n", "\t"]:
-            val=val[:-1]
-        mfrom=message["from"]
+        val = message["value"]
+        while len(val) and val[-1] in [" ", "\n", "\t"]:
+            val = val[:-1]
+        mfrom = message["from"]
         if add_generation_prompt:
-            mfrom=message["from"]
+            mfrom = message["from"]
             if idx == 0:
                 text = f"<|begin_of_text|>"
             else:
                 text = ""
-            if mfrom=="human":
-                text+= f"<|start_header_id|>user<|end_header_id|>\n\n{val}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-            elif mfrom=="gpt":
-                text+= f"{val}<|eot_id|>"            
+            if mfrom == "human":
+                text += f"<|start_header_id|>user<|end_header_id|>\n\n{val}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+            elif mfrom == "gpt":
+                text += f"{val}<|eot_id|>"
         else:
-            if mfrom=="human":
-                mfrom="user"
-            elif mfrom=="gpt":
-                mfrom="assistant"
+            if mfrom == "human":
+                mfrom = "user"
+            elif mfrom == "gpt":
+                mfrom = "assistant"
             if idx == 0:
                 text = f"<|begin_of_text|><|start_header_id|>{mfrom}<|end_header_id|>\n\n{val}<|eot_id|>"
             else:
                 text = f"<|start_header_id|>{mfrom}<|end_header_id|>\n\n{val}<|eot_id|>"
-            
+
         input_ids = tokenizer.encode(text, add_special_tokens=False)
-        if(message["loss"]):
+        if message["loss"]:
             action_mask = [1] * len(input_ids)
         else:
             action_mask = [0] * len(input_ids)
@@ -307,6 +314,7 @@ class Llama3Template(BaseChatTemplate):
             }
         )
 
+
 class ChatGLM4Template(BaseChatTemplate):
     def tokenize_conversation_one(
         self,
@@ -315,29 +323,29 @@ class ChatGLM4Template(BaseChatTemplate):
         idx: int = -1,
         add_generation_prompt: bool = False,
     ) -> TokenizedConversationOutput:
-        val=message["value"]
+        val = message["value"]
         if add_generation_prompt:
-            mfrom=message["from"]
-            if idx==0:
-                text="[gMASK]<sop>"
+            mfrom = message["from"]
+            if idx == 0:
+                text = "[gMASK]<sop>"
             else:
-                text=""
-            if mfrom=="human":
+                text = ""
+            if mfrom == "human":
                 text += f"<|user|>\n{val}<|assistant|>"
             else:
                 text += f"\n{val}"
         else:
-            mfrom=message["from"]
-            if mfrom=="human":
-                mfrom="user"
-            elif mfrom=="gpt":
-                mfrom="assistant"
+            mfrom = message["from"]
+            if mfrom == "human":
+                mfrom = "user"
+            elif mfrom == "gpt":
+                mfrom = "assistant"
             if idx == 0:
                 text = f"[gMASK]<sop><|{mfrom}|>\n{val}"
             else:
                 text = f"<|{mfrom}|>\n{val}"
         input_ids = tokenizer.encode(text, add_special_tokens=False)
-        if(message["loss"]):
+        if message["loss"]:
             action_mask = [1] * len(input_ids)
         else:
             action_mask = [0] * len(input_ids)

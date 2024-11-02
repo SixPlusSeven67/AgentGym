@@ -7,6 +7,7 @@ class TextCraft_Wrapper:
         self._max_id = 0
         self.env = {}  # dict[id, env_item]
         self.info = {}  # dict[id, env_info]
+        self.ls = []
         self.crafting_tree = CraftingTree(minecraft_dir=minecraft_dir)
 
     def create(self, commands: str = None, goal: str = None):
@@ -17,6 +18,7 @@ class TextCraft_Wrapper:
             )
             ob, _ = new_env.reset(data_idx=id)
             print(f"-------Env {id} created--------")
+            self.ls.append(id)
             payload = {"id": id, "observation": ob, "done": False, "reward": 0}
             self.env[id] = new_env
             self.info[id] = {
@@ -71,5 +73,10 @@ class TextCraft_Wrapper:
             raise NameError(f"The id {id} is not valid.")
         if self.info[id]["deleted"]:
             raise NameError(f"The task with environment {id} has been deleted.")
+    
+    def __del__(self):
+        for idx in self.ls:
+            self.env[idx].close()
+            print(f"-------Env {idx} closed--------")
 
 server = TextCraft_Wrapper()
