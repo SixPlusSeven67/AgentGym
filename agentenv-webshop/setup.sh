@@ -11,6 +11,7 @@ python convert_product_file_format.py # convert items.json => required doc forma
 mkdir -p indexes
 bash ./run_indexing.sh
 cd ../..
+
 pip install -e .
 
 pip uninstall numpy
