@@ -1,8 +1,10 @@
 import json
 import re
 from typing import Any, Mapping
+
 import requests
 from requests.exceptions import RequestException
+
 from agentenv.controller import (
     BaseAdapter,
     BaseEnvClient,
@@ -18,8 +20,6 @@ from agentenv.controller.types import (
     ConversationMessage,
     StepOutput,
 )
-from agentenv.controller.types import ConversationMessage, StepOutput
-
 
 # Five actions take two arguments, 16 take one argument, and four actions take zero arguments.
 SCIWORLD_FUNCTION_DESCRIPTION = [
@@ -554,7 +554,7 @@ class SciWorldAdapter(BaseAdapter):
             conjunction = SciWorldAdapter.conjunction_words[fn_name]
             action = f'{action_name} {args[arg_ls[0]]} {conjunction} {args[arg_ls[1]]}'
         return ActionWithTought(thought=thought, action=action)
-    
+
     @staticmethod
     def to_function_calling(action_with_thought: ActionWithTought) -> str:
         valid_action_flag = False
@@ -605,111 +605,111 @@ class SciWorldAdapter(BaseAdapter):
             ensure_ascii=False,
             indent=2,
         )
-    
+
     @staticmethod
     def parse_code_as_action(text: str) -> ActionWithTought:
         def open(obj: str):
             action_name = SciWorldAdapter.function_to_name["open"]
             return f"{action_name} {obj}"
-        
+
         def close(obj: str):
             action_name = SciWorldAdapter.function_to_name["close"]
             return f"{action_name} {obj}"
-        
+
         def activate(obj: str):
             action_name = SciWorldAdapter.function_to_name["activate"]
             return f"{action_name} {obj}"
-        
+
         def deactivate(obj: str):
             action_name = SciWorldAdapter.function_to_name["deactivate"]
             return f"{action_name} {obj}"
-        
+
         def connect(obj1: str, obj2: str):
             action_name = SciWorldAdapter.function_to_name["connect"]
             conjuction = SciWorldAdapter.conjunction_words["connect"]
             return f"{action_name} {obj1} {conjuction} {obj2}"
-        
+
         def disconnect(obj: str):
             action_name = SciWorldAdapter.function_to_name["disconnect"]
             return f"{action_name} {obj}"
-        
+
         def use(tool: str, obj: str=''):
             action_name = SciWorldAdapter.function_to_name["use"]
             conjuction = SciWorldAdapter.conjunction_words["use"]
             return f"{action_name} {tool} {conjuction} {obj}" if obj else f"{action_name} {tool}"
-        
+
         def lookaround():
             action_name = SciWorldAdapter.function_to_name["lookaround"]
             return f"{action_name}"
-        
+
         def lookat(obj: str):
             action_name = SciWorldAdapter.function_to_name["lookat"]
             return f"{action_name} {obj}"
-        
+
         def read(obj: str):
             action_name = SciWorldAdapter.function_to_name["read"]
             return f"{action_name} {obj}"
-        
+
         def move(obj: str, container: str):
             action_name = SciWorldAdapter.function_to_name["move"]
             conjuction = SciWorldAdapter.conjunction_words["move"]
             return f"{action_name} {obj} {conjuction} {container}"
-        
+
         def pickup(obj: str):
             action_name = SciWorldAdapter.function_to_name["pickup"]
             return f"{action_name} {obj}" 
-        
+
         def drop(obj: str):
             action_name = SciWorldAdapter.function_to_name["drop"]
             return f"{action_name} {obj}" 
-        
+
         def pour(liq: str, container: str):
             action_name = SciWorldAdapter.function_to_name["pour"]
             conjuction = SciWorldAdapter.conjunction_words["pour"]
             return f"{action_name} {liq} {conjuction} {container}" 
-        
+
         def dunk(container: str, liq: str):
             action_name = SciWorldAdapter.function_to_name["dunk"]
             conjuction = SciWorldAdapter.conjunction_words["dunk"]
             return f"{action_name} {container} {conjuction} {liq}" 
-        
+
         def mix(container: str):
             action_name = SciWorldAdapter.function_to_name["mix"]
             return f"{action_name} {container}" 
-        
+
         def goto(loc: str):
             action_name = SciWorldAdapter.function_to_name["goto"]
             return f"{action_name} {loc}"  
-        
+
         def eat(food: str):
             action_name = SciWorldAdapter.function_to_name["eat"]
             return f"{action_name} {food}" 
-        
+
         def flush(obj: str):
             action_name = SciWorldAdapter.function_to_name["flush"]
             return f"{action_name} {obj}" 
-        
+
         def focus(obj: str):
             action_name = SciWorldAdapter.function_to_name["focus"]
             return f"{action_name} {obj}"
-        
+
         def wait(duration: str):
             action_name = SciWorldAdapter.function_to_name["wait"]
             return f"{action_name}{duration}"
-        
+
         def choose(option: str):
             return f"{option}"
-        
+
         def examine(obj: str):
             action_name = SciWorldAdapter.function_to_name["examine"]
             return f"{action_name} {obj}"
-        
+
         def task():
-            return f"{SciWorldAdapter.function_to_name["task"]}"
-        
+            return f"{SciWorldAdapter.function_to_name['task']}"
+
         def inventory():
-            return f"{SciWorldAdapter.function_to_name["inventory"]}"
-        
+            return f"{SciWorldAdapter.function_to_name['inventory']}"
+
         code = extract_python_code_blocks(text)
         try:
             action = eval(code, {
@@ -779,7 +779,12 @@ class SciWorldAdapter(BaseAdapter):
         if len(str_arg_ls) == 0:
             text += f"{fn_name}()"
         elif len(str_arg_ls) == 1:
-            text += f"{fn_name}({repr(f'{str_arg_ls[0]}')})" if fn_name != "wait" else f"{fn_name}({repr(re.findall(r'\d+', str_arg_ls[0])[0])})"
+            arg_list = (
+                repr(f"{str_arg_ls[0]}")
+                if fn_name != "wait"
+                else repr(re.findall(r"\d+", str_arg_ls[0])[0])
+            )
+            text += f"{fn_name}({arg_list})"
         else:
             text += f"{fn_name}({repr(f'{str_arg_ls[0]}')},{repr(f'{str_arg_ls[1]}')})"
         text += "\n```"
