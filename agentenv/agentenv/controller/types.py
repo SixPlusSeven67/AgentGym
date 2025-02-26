@@ -38,10 +38,10 @@ class StepOutput:
 class ExperienceOutput:
     conversation: list[ConversationMessage]
     reward: float
-    text: str
-    seq_ids: list[int]
-    attention_mask: list[int]
-    action_mask: list[int]
+    text: str | None
+    seq_ids: list[int] | None
+    attention_mask: list[int] | None
+    action_mask: list[int] | None
 
 
 @dataclass

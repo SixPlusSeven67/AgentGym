@@ -1,5 +1,6 @@
 from .agent import (
     Agent,
+    APIAgent,
     BaseChatTemplate,
     ChatGLM4Template,
     ChatMLTemplate,

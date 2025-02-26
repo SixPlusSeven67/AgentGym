@@ -5,7 +5,7 @@ from typing import Optional, Sequence
 import numpy as np
 from transformers import GenerationConfig
 
-from . import Agent, BaseTask
+from . import Agent, APIAgent, BaseTask
 from .types import (
     ActionFormat,
     ActionWithTought,
@@ -204,7 +204,7 @@ class BaseAdapter:
 
 
 class BaseAgentEnvController:
-    def __init__(self, agent: Agent, tasks: Sequence[BaseTask]) -> None:
+    def __init__(self, agent: Agent | APIAgent, tasks: Sequence[BaseTask]) -> None:
         self.agent = agent
         self.tasks = tasks
 

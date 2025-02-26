@@ -2,7 +2,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 
 from transformers import GenerationConfig
 
-from . import Agent, BaseEnvClient
+from . import Agent, APIAgent, BaseEnvClient
 from .types import ConversationMessage, ExperienceOutput
 
 
@@ -29,13 +29,12 @@ class BaseTask:
 
     def _generate_experience_one(
         self,
-        agent: Agent,
+        agent: Agent | APIAgent,
         client: BaseEnvClient,
         idx: int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
     ) -> ExperienceOutput:
-        tokenizer = agent.tokenizer
         client.reset(idx)
         reward = 0.0
         done = False
@@ -44,35 +43,40 @@ class BaseTask:
         conversation.append(
             ConversationMessage({"from": "human", "loss": None, "value": state})
         )
-        conversation_tokenized = agent.chat_template.tokenize_conversation(
-            conversation, tokenizer, add_generation_prompt=True
-        )
+        if isinstance(agent, Agent):
+            tokenizer = agent.tokenizer
+            conversation_tokenized = agent.chat_template.tokenize_conversation(
+                conversation, tokenizer, add_generation_prompt=True
+            )
         rounds = 0
 
         while not done:
-            input_length = len(conversation_tokenized["input_ids"])
-            # if input_length exceeds max_length, break
-            if input_length >= (generation_config.max_length or 4096):
-                break
-            try:
-                generated_tokens = agent.generate(
-                    [conversation_tokenized["input_ids"]], generation_config
-                )[0]
-            except Exception as e:  # pylint: disable=W0718:broad-exception-caught
-                print(e)
-                break  # break if generate method raises exceptions
+            if isinstance(agent, Agent):
+                input_length = len(conversation_tokenized["input_ids"])
+                # if input_length exceeds max_length, break
+                if input_length >= (generation_config.max_length or 4096):
+                    break
+                try:
+                    generated_tokens = agent.generate(
+                        [conversation_tokenized["input_ids"]], generation_config
+                    )[0]
+                except Exception as e:  # pylint: disable=W0718:broad-exception-caught
+                    print(e)
+                    break  # break if generate method raises exceptions
 
-            if generated_tokens[-1] != tokenizer.eos_token_id:
-                generated_tokens += [tokenizer.eos_token_id]
+                if generated_tokens[-1] != tokenizer.eos_token_id:
+                    generated_tokens += [tokenizer.eos_token_id]
 
-            generated_text = tokenizer.decode(generated_tokens)
-            conversation_tokenized["text"] += f" {generated_text}"
-            conversation_tokenized["input_ids"] += generated_tokens
-            conversation_tokenized["action_mask"] += [1] * len(generated_tokens)
+                generated_text = tokenizer.decode(generated_tokens)
+                conversation_tokenized["text"] += f" {generated_text}"
+                conversation_tokenized["input_ids"] += generated_tokens
+                conversation_tokenized["action_mask"] += [1] * len(generated_tokens)
 
-            generated_text = generated_text[
-                : -len(tokenizer.eos_token)
-            ]  # not endswith eos_token
+                generated_text = generated_text[
+                    : -len(tokenizer.eos_token)
+                ]  # not endswith eos_token
+            else:
+                generated_text = agent.generate(conversation)
             conversation.append(
                 ConversationMessage(
                     {"from": "gpt", "loss": True, "value": generated_text}
@@ -88,16 +92,18 @@ class BaseTask:
             env_message = ConversationMessage(
                 {"from": "human", "loss": None, "value": state}
             )
-            env_message_tokenized = agent.chat_template.tokenize_conversation_one(
-                env_message, tokenizer, add_generation_prompt=True
-            )
-
             conversation.append(env_message)
-            conversation_tokenized["text"] += env_message_tokenized["text"]
-            conversation_tokenized["input_ids"] += env_message_tokenized["input_ids"]
-            conversation_tokenized["action_mask"] += env_message_tokenized[
-                "action_mask"
-            ]
+
+            if isinstance(agent, Agent):
+                env_message_tokenized = agent.chat_template.tokenize_conversation_one(
+                    env_message, tokenizer, add_generation_prompt=True
+                )
+
+                conversation_tokenized["text"] += env_message_tokenized["text"]
+                conversation_tokenized["input_ids"] += env_message_tokenized["input_ids"]
+                conversation_tokenized["action_mask"] += env_message_tokenized[
+                    "action_mask"
+                ]
 
             rounds += 1
             if max_rounds is not None and rounds >= max_rounds:
@@ -106,15 +112,15 @@ class BaseTask:
         return ExperienceOutput(
             conversation=conversation,
             reward=reward,
-            text=conversation_tokenized["text"],
-            seq_ids=conversation_tokenized["input_ids"],
-            attention_mask=[1] * len(conversation_tokenized["input_ids"]),
-            action_mask=conversation_tokenized["action_mask"],
+            text=conversation_tokenized["text"] if isinstance(agent, Agent) else None,
+            seq_ids=conversation_tokenized["input_ids"] if isinstance(agent, Agent) else None,
+            attention_mask=[1] * len(conversation_tokenized["input_ids"]) if isinstance(agent, Agent) else None,
+            action_mask=conversation_tokenized["action_mask"] if isinstance(agent, Agent) else None,
         )
 
     def _generate_experience_batch(
         self,
-        agent: Agent,
+        agent: Agent | APIAgent,
         idxs: Sequence[int],
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
@@ -134,7 +140,7 @@ class BaseTask:
 
     def generate_experience(
         self,
-        agent: Agent,
+        agent: Agent | APIAgent,
         idxs: Sequence[int] | int,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,

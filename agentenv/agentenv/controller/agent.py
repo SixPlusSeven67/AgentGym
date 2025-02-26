@@ -13,6 +13,9 @@ from transformers.generation.utils import GenerateOutput
 
 from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
 
+from openai import OpenAI
+import time
+
 try:
     import torch_npu
 except ImportError:
@@ -187,6 +190,40 @@ class Agent:
             ]
 
         return generated_tokens
+
+
+class APIAgent:
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://api.openai.com/v1/",
+        model: str = "gpt-4o-mini",
+        max_tokens: int = 4096,
+        temperature: float = 1,
+        top_p: float = 1,
+    ) -> None:
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.model = model
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+        self.top_p = top_p
+        self.role = {"system": "system", "human": "user", "gpt": "assistant"}
+
+    def generate(
+        self,
+        conversation: list[ConversationMessage],
+    ) -> str:
+        while True:
+            try:
+                return self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{"role": self.role[c["from"]], "content": c["value"]} for c in conversation],
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                    top_p=self.top_p
+                ).choices[0].message.content
+            except:
+                time.sleep(1)
 
 
 class Llama2Template(BaseChatTemplate):
