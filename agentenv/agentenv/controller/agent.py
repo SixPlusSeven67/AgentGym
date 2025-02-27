@@ -11,7 +11,7 @@ from torch.nn.parallel import DistributedDataParallel
 from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
 from transformers.generation.utils import GenerateOutput
 
-from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
+from .types import ConversationMessage, APIConversationMessage, InferenceEngine, TokenizedConversationOutput
 
 import time
 from typing import Tuple
@@ -212,20 +212,22 @@ class APIAgent:
 
     def generate(
         self,
-        conversation: list[ConversationMessage],
+        conversation: list[APIConversationMessage],
     ) -> Tuple[str, str | None]:
         while True:
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     # messages=[{"role": self.role[c["from"]], "content": c["value"]} for c in conversation],
-                    messages=conversation,
+                    # messages=conversation,
+                    messages=[{"role": c["role"], "content": c["content"]} for c in conversation],
                     max_tokens=self.max_tokens,
                     temperature=self.temperature,
                     top_p=self.top_p
                 )
                 return response.choices[0].message.content, response.choices[0].message.reasoning_content if hasattr(response.choices[0].message, "reasoning_content") else None
-            except:
+            except Exception as e:
+                print(e)
                 time.sleep(1)
 
 
