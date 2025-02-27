@@ -143,7 +143,7 @@ def main(args):
                     "item_id": item_id,
                     "reward": cur_reward,
                     "success": cur_success,
-                }, f)
+                }, f, ensure_ascii=False, indent=4)
     process_time = time.time() - start_time
 
     Score = total_score / len(data_idxs)

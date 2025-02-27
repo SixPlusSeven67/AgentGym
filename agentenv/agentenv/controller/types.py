@@ -6,6 +6,10 @@ ConversationMessage = TypedDict(
     "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
 )
 
+APIConversationMessage = TypedDict(
+    "APIConversationMessage", {"role": str, "content": str, "reasoning_content": Optional[str]}
+)
+
 TokenizedConversationOutput = TypedDict(
     "TokenizedConversationOutput",
     {
@@ -38,10 +42,16 @@ class StepOutput:
 class ExperienceOutput:
     conversation: list[ConversationMessage]
     reward: float
-    text: str | None
-    seq_ids: list[int] | None
-    attention_mask: list[int] | None
-    action_mask: list[int] | None
+    text: str
+    seq_ids: list[int]
+    attention_mask: list[int]
+    action_mask: list[int]
+
+
+@dataclass
+class APIExperienceOutput:
+    conversation: list[ConversationMessage]
+    reward: float
 
 
 @dataclass

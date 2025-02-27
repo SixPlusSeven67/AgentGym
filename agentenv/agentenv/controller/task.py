@@ -3,7 +3,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 from transformers import GenerationConfig
 
 from . import Agent, APIAgent, BaseEnvClient
-from .types import ConversationMessage, ExperienceOutput
+from .types import ConversationMessage, APIConversationMessage, ExperienceOutput, APIExperienceOutput
 
 
 class BaseTask:
@@ -39,15 +39,21 @@ class BaseTask:
         reward = 0.0
         done = False
         state = client.observe()
-        conversation = list(client.conversation_start)
-        conversation.append(
-            ConversationMessage({"from": "human", "loss": None, "value": state})
-        )
         if isinstance(agent, Agent):
             tokenizer = agent.tokenizer
+            conversation = list(client.conversation_start)
+            conversation.append(
+                ConversationMessage({"from": "human", "loss": None, "value": state})
+            )
             conversation_tokenized = agent.chat_template.tokenize_conversation(
                 conversation, tokenizer, add_generation_prompt=True
             )
+        elif isinstance(agent, APIAgent):
+            conversation = [APIConversationMessage({"role": "user", "content": client.conversation_start[0]["value"], "reasoning_content": None}),
+                            APIConversationMessage({"role": "assistant", "content": client.conversation_start[1]["value"], "reasoning_content": None}),
+                            APIConversationMessage({"role": "user", "content": state, "reasoning_content": None})]
+        else:
+            raise NotImplementedError
         rounds = 0
 
         while not done:
@@ -75,13 +81,20 @@ class BaseTask:
                 generated_text = generated_text[
                     : -len(tokenizer.eos_token)
                 ]  # not endswith eos_token
-            else:
-                generated_text = agent.generate(conversation)
-            conversation.append(
-                ConversationMessage(
-                    {"from": "gpt", "loss": True, "value": generated_text}
+                conversation.append(
+                    ConversationMessage(
+                        {"from": "gpt", "loss": True, "value": generated_text}
+                    )
                 )
-            )
+            elif isinstance(agent, APIAgent):
+                generated_text, generated_reasoning_text = agent.generate(conversation)
+                conversation.append(
+                    APIConversationMessage(
+                        {"role": "assistant", "content": generated_text, "reasoning_content": generated_reasoning_text}
+                    )
+                )
+            else:
+                raise NotImplementedError
 
             step_output = client.step(generated_text)
             state, reward, done = (
@@ -89,34 +102,50 @@ class BaseTask:
                 step_output.reward,
                 step_output.done,
             )
-            env_message = ConversationMessage(
-                {"from": "human", "loss": None, "value": state}
-            )
-            conversation.append(env_message)
 
             if isinstance(agent, Agent):
+                env_message = ConversationMessage(
+                    {"from": "human", "loss": None, "value": state}
+                )
                 env_message_tokenized = agent.chat_template.tokenize_conversation_one(
                     env_message, tokenizer, add_generation_prompt=True
                 )
 
+                conversation.append(env_message)
                 conversation_tokenized["text"] += env_message_tokenized["text"]
                 conversation_tokenized["input_ids"] += env_message_tokenized["input_ids"]
                 conversation_tokenized["action_mask"] += env_message_tokenized[
                     "action_mask"
                 ]
+            elif isinstance(agent, APIAgent):
+                conversation.append(
+                    APIConversationMessage(
+                        {"role": "user", "content": state, "reasoning_content": None}
+                    )
+                )
+            else:
+                raise NotImplementedError
 
             rounds += 1
             if max_rounds is not None and rounds >= max_rounds:
                 break
 
-        return ExperienceOutput(
-            conversation=conversation,
-            reward=reward,
-            text=conversation_tokenized["text"] if isinstance(agent, Agent) else None,
-            seq_ids=conversation_tokenized["input_ids"] if isinstance(agent, Agent) else None,
-            attention_mask=[1] * len(conversation_tokenized["input_ids"]) if isinstance(agent, Agent) else None,
-            action_mask=conversation_tokenized["action_mask"] if isinstance(agent, Agent) else None,
-        )
+        if isinstance(agent, Agent):
+            return ExperienceOutput(
+                conversation=conversation,
+                reward=reward,
+                text=conversation_tokenized["text"],
+                seq_ids=conversation_tokenized["input_ids"],
+                attention_mask=[1] * len(conversation_tokenized["input_ids"]),
+                action_mask=conversation_tokenized["action_mask"],
+            )
+        elif isinstance(agent, APIAgent):
+            return APIExperienceOutput(
+                conversation=conversation,
+                reward=reward,
+            )
+        else:
+            raise NotImplementedError
 
     def _generate_experience_batch(
         self,

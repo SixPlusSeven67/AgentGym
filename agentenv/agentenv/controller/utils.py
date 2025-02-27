@@ -12,6 +12,7 @@ from .types import (
     ConversationMessage,
     EvaluationOutput,
     ExperienceOutput,
+    APIExperienceOutput,
 )
 
 INVOKING_FUNCTION_PROMPT = """
@@ -213,7 +214,7 @@ class BaseAgentEnvController:
         idxs: Sequence[int] | Sequence[Sequence[int]] | None = None,
         generation_config: Optional[GenerationConfig] = None,
         max_rounds: Optional[int] = None,
-    ) -> list[ExperienceOutput]:
+    ) -> list[ExperienceOutput | APIExperienceOutput]:
         experience = []
         if isinstance(idxs[0], int):
             experience += self.tasks[0].generate_experience(

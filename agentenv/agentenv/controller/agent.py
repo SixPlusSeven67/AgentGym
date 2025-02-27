@@ -13,8 +13,9 @@ from transformers.generation.utils import GenerateOutput
 
 from .types import ConversationMessage, InferenceEngine, TokenizedConversationOutput
 
-from openai import OpenAI
 import time
+from typing import Tuple
+from openai import OpenAI
 
 try:
     import torch_npu
@@ -207,21 +208,23 @@ class APIAgent:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.top_p = top_p
-        self.role = {"system": "system", "human": "user", "gpt": "assistant"}
+        # self.role = {"system": "system", "human": "user", "gpt": "assistant"}
 
     def generate(
         self,
         conversation: list[ConversationMessage],
-    ) -> str:
+    ) -> Tuple[str, str | None]:
         while True:
             try:
-                return self.client.chat.completions.create(
+                response = self.client.chat.completions.create(
                     model=self.model,
-                    messages=[{"role": self.role[c["from"]], "content": c["value"]} for c in conversation],
+                    # messages=[{"role": self.role[c["from"]], "content": c["value"]} for c in conversation],
+                    messages=conversation,
                     max_tokens=self.max_tokens,
                     temperature=self.temperature,
                     top_p=self.top_p
-                ).choices[0].message.content
+                )
+                return response.choices[0].message.content, response.choices[0].message.reasoning_content if hasattr(response.choices[0].message, "reasoning_content") else None
             except:
                 time.sleep(1)
 
