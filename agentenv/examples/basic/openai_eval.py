@@ -33,11 +33,11 @@ import random
 
 @dataclass
 class EvalArguments:
+    api_key: str
+    base_url: str
+    model: str
     inference_file: str = field(metadata={"help": "Test dataset."})
     output_dir: str
-    api_key: str
-    base_url: str = field(default="https://api.openai.com/v1/")
-    model: str = field(default="gpt-4o-mini")
     max_tokens: int = field(default=4096)
     temperature: float = field(default=1)
     top_p: float = field(default=1)
