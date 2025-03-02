@@ -197,8 +197,8 @@ class APIAgent:
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://api.openai.com/v1/",
-        model: str = "gpt-4o-mini",
+        base_url: str,
+        model: str,
         max_tokens: int = 4096,
         temperature: float = 1,
         top_p: float = 1,
