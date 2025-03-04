@@ -123,10 +123,16 @@ def main(args):
         except:
             pass
 
-        exps = evaluator.eval(
-            max_rounds=args["max_round"],
-            idxs=[data_idx],
-        )
+        while True:
+            try:
+                exps = evaluator.eval(
+                    max_rounds=args["max_round"],
+                    idxs=[data_idx],
+                )
+                break
+            except Exception as e:
+                print(e)
+                continue
         total_score += exps.score
         total_success += exps.success
 
