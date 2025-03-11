@@ -113,6 +113,7 @@ def main(args):
     total_score = 0.0
     total_success = 0.0
     start_time = time.time()
+    os.makedirs(args["output_dir"], exist_ok=True)
     for data_idx in tqdm(data_idxs, total=len(data_idxs), desc="[Evaluation Loop]"):
         try:
             with open(os.path.join(args["output_dir"], f"{args['task_name']}_{data_idx}.json"), 'r') as f:
