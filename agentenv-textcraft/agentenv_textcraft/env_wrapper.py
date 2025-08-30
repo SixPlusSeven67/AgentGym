@@ -73,6 +73,22 @@ class TextCraft_Wrapper:
             raise NameError(f"The id {id} is not valid.")
         if self.info[id]["deleted"]:
             raise NameError(f"The task with environment {id} has been deleted.")
+        
+    def close(self, id):
+        try:
+            self.ls.remove(id)
+            self.env[id].close() 
+            del self.info[id] 
+            del self.env[id] 
+            print(f"-------Env {id} closed--------")
+            return True
+        except KeyError:
+            print(f"--------Env {id} not exist--------")
+            return False
+        except Exception as e:
+            print(f"Error while closing Env {id}: {e}")
+            return False
+    
     
     def __del__(self):
         for idx in self.ls:

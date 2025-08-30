@@ -600,6 +600,9 @@ class AlfWorldEnvClient(BaseEnvClient):
         }
         return response
 
+    def close(self):
+        response = self._post("close",{})
+        return response
 
 class AlfWorldTask(BaseTask):
     env_client_cls = AlfWorldEnvClient

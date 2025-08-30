@@ -45,7 +45,7 @@ class BaseChatTemplate(metaclass=ABCMeta):
         action_mask = []
         for idx, message in enumerate(conversation):
             res = self.tokenize_conversation_one(
-                message, tokenizer, idx, add_generation_prompt
+                message, tokenizer, idx, add_generation_prompt and idx == len(conversation) - 1
             )
             text += res["text"]
             input_ids += res["input_ids"]
@@ -126,7 +126,7 @@ class Agent:
                 print(f"{num_devices=}, {n=}, {tp_size=}.")
                 try:
                     llm = LLM(
-                        shm_path,
+                        str(shm_path),
                         tensor_parallel_size=tp_size,
                         enable_prefix_caching=bool(not torch_npu),
                         use_v2_block_manager=True,
@@ -157,7 +157,7 @@ class Agent:
                 "top_p": generation_config.top_p,
                 "top_k": generation_config.top_k,
                 "min_p": generation_config.min_p,
-                "length_penalty": generation_config.length_penalty,
+                # "length_penalty": generation_config.length_penalty,
                 "early_stopping": generation_config.early_stopping,
                 "max_tokens": max_tokens,
                 "min_new_tokens": generation_config.min_new_tokens,

@@ -6,6 +6,8 @@ from .agent import (
     ChatMLTemplate,
     Llama2Template,
     Llama3Template,
+    ChatMLQwen3Template,
+    Qwen2Template,
 )
 from .env import BaseEnvClient, StepOutput
 from .task import BaseTask

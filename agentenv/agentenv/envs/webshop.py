@@ -229,6 +229,8 @@ class WebshopEnvClient(BaseEnvClient):
         response[0] = self.observe()
         return response
 
+    def close(self):
+        response = self._post("close", {})
 
 class WebshopTask(BaseTask):
     env_client_cls = WebshopEnvClient

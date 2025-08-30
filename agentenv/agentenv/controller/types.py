@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Sequence, TypedDict
+from typing import Optional, Sequence, TypedDict, List
 
 ConversationMessage = TypedDict(
     "ConversationMessage", {"from": str, "loss": Optional[bool], "value": str}
@@ -65,3 +65,18 @@ class EvaluationOutput:
     experiences: list[ExperienceOutput]
     score: float
     success: float
+
+
+@dataclass
+class Function():
+    name: str
+    arguments: str
+
+
+@dataclass
+class ChatCompletionMessageToolCall():
+    # tool_call id
+    id: str
+
+    # extracted tool calls
+    function: Function

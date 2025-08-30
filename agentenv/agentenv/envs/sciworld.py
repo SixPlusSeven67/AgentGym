@@ -867,6 +867,9 @@ class SciworldEnvClient(BaseEnvClient):
         }
         return response
 
+    def close(self):
+        response = self._post("close",{})
+        return response
 
 class SciworldTask(BaseTask):
     env_client_cls = SciworldEnvClient

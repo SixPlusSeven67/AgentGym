@@ -4,6 +4,15 @@ from .environment import server
 
 app = FastAPI()
 
+# If using visualization mode to debug, please uncomment this.
+# from fastapi.middleware.cors import CORSMiddleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 @app.get("/")
 def hello():
@@ -11,7 +20,7 @@ def hello():
 
 
 @app.post("/create")
-async def create():
+def create():
     return server.create()
 
 
@@ -19,11 +28,17 @@ async def create():
 def step(body: StepRequestBody):
     return server.step(body.id, body.action)
 
+@app.post("/step_visual")
+def step_visual(body: StepRequestBody):
+    return server.step_visual(body.id, body.actions)
 
 @app.post("/reset")
 def reset(body: ResetRequestBody):
     return server.reset(body.id, body.data_idx)
 
+@app.post("/close")
+def close(body: CloseRequestBody):
+    return server.close(body.id)
 
 @app.get("/observation")
 def get_observation(id: int):
@@ -43,3 +58,16 @@ def get_goals(id: int):
 @app.get("/detail")
 def get_detailed_info(id: int):
     return server.get_detailed_info(id)
+
+
+@app.get("/task_description")
+def get_task_description(id: int):
+    return server.get_task_description(id)
+
+@app.get("/object_tree")
+def get_object_tree(id: int):
+    return server.get_object_tree(id)
+
+@app.get("/state")
+def get_current_state(id: int):
+    return server.get_current_state(id)

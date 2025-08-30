@@ -16,6 +16,7 @@ from agentenv.envs import (
     BabyAITask,
     MazeTask,
     MovieTask,
+    SearchQATask,
     SciworldTask,
     SheetTask,
     SqlGymTask,
@@ -77,6 +78,7 @@ def main(args):
         "movie": MovieTask,
         "sheet": SheetTask,
         "academia": AcademiaTask,
+        "searchqa": SearchQATask,
     }
 
     # select task according to the name
