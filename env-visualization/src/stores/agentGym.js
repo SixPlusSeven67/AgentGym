@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 import { AgentGymAPI } from '../api/agentGymAPI.js'
 
 export const useAgentGymStore = defineStore('agentGym', () => {
-  // 状态
+
   const api = new AgentGymAPI()
   const currentEnvironment = ref(null)
   const environmentId = ref(null)
@@ -14,7 +14,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
   const error = ref(null)
   const success = ref(null)
   
-  // 环境状态
+
   const environmentState = ref({
     observation: '',
     reward: 0,
@@ -22,10 +22,10 @@ export const useAgentGymStore = defineStore('agentGym', () => {
     info: {}
   })
   
-  // 交互历史
+
   const interactionHistory = ref([])
   
-  // 环境特定数据
+
   const environmentData = ref({
     textcraft: {
       inventory: [],
@@ -56,7 +56,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
     }
   })
   
-  // 计算属性
+
   const currentEnvData = computed(() => {
     if (!currentEnvironment.value) return null
     return environmentData.value[currentEnvironment.value.id] || {}
@@ -74,7 +74,6 @@ export const useAgentGymStore = defineStore('agentGym', () => {
       .length
   })
   
-  // 动作
   const setCurrentEnvironment = (env) => {
     currentEnvironment.value = env
     api.setEnvironmentType(env.id)
@@ -97,7 +96,6 @@ export const useAgentGymStore = defineStore('agentGym', () => {
         environmentId.value = result.data.id || result.data.env_idx
         isConnected.value = true
         
-        // 获取初始观察
         await refreshObservation()
         
         success.value = `Environment ${currentEnvironment.value.name} created successfully!`
@@ -122,7 +120,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
       const result = await client.reset(environmentId.value)
       
       if (result.success) {
-        // 清除状态
+
         interactionHistory.value = []
         environmentState.value = {
           observation: '',
@@ -131,10 +129,9 @@ export const useAgentGymStore = defineStore('agentGym', () => {
           info: {}
         }
         
-        // 重置环境特定数据
+
         resetEnvironmentData()
-        
-        // 获取新的观察
+
         await refreshObservation()
         
         success.value = 'Environment reset successfully!'
@@ -159,11 +156,11 @@ export const useAgentGymStore = defineStore('agentGym', () => {
       const result = await client.step(environmentId.value, action)
       
       if (result.success) {
-        // 添加到历史
+
         addToHistory('action', action)
         addToHistory('response', result.data.observation, result.data.reward, result.data.done)
         
-        // 更新环境状态
+
         environmentState.value = {
           observation: result.data.observation,
           reward: result.data.reward,
@@ -171,7 +168,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
           info: result.data.info || {}
         }
         
-        // 更新环境特定数据
+
         updateEnvironmentData(result.data)
         
         if (result.data.done) {
@@ -197,7 +194,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
       const aiAgent = api.getAIAgent()
       await aiAgent.initialize()
       
-      // 初始化对话
+
       aiAgent.initializeConversation(
         environmentId.value,
         currentEnvironment.value.id,
@@ -208,18 +205,17 @@ export const useAgentGymStore = defineStore('agentGym', () => {
       
       while (isAutoRunning.value && rounds < maxRounds && !environmentState.value.done) {
         try {
-          // 生成AI响应
+
           const aiResponse = await aiAgent.generateResponse(
             environmentId.value,
             environmentState.value.observation
           )
           
-          // 执行AI建议的动作
+
           await sendAction(aiResponse.action)
           
           rounds++
-          
-          // 延迟以便观察
+
           await new Promise(resolve => setTimeout(resolve, 1500))
           
         } catch (err) {
@@ -294,7 +290,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
     return null
   }
   
-  // 辅助函数
+
   const addToHistory = (type, content, reward = 0, done = false) => {
     interactionHistory.value.unshift({
       id: Date.now() + Math.random(),
@@ -305,7 +301,7 @@ export const useAgentGymStore = defineStore('agentGym', () => {
       timestamp: Date.now()
     })
     
-    // 限制历史记录长度
+
     if (interactionHistory.value.length > 100) {
       interactionHistory.value = interactionHistory.value.slice(0, 100)
     }
@@ -418,7 +414,6 @@ export const useAgentGymStore = defineStore('agentGym', () => {
   }
   
   return {
-    // 状态
     currentEnvironment,
     environmentId,
     isConnected,
@@ -430,12 +425,10 @@ export const useAgentGymStore = defineStore('agentGym', () => {
     interactionHistory,
     environmentData,
     
-    // 计算属性
     currentEnvData,
     totalReward,
     episodeCount,
     
-    // 动作
     setCurrentEnvironment,
     createEnvironment,
     resetEnvironment,
@@ -449,7 +442,6 @@ export const useAgentGymStore = defineStore('agentGym', () => {
     clearError,
     clearSuccess,
     
-    // API实例
     api
   }
 })

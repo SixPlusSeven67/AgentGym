@@ -282,8 +282,8 @@ export default {
     'suggest-action',
     'auto-action-sent',
     'auto-response-received',
-    'observation-updated', // Added for WebArena observation updates
-    'sciworld-debug' // Added for SciWorld debug
+    'observation-updated', 
+    'sciworld-debug' 
   ],
   setup(props, { emit, expose }) {
     // State
@@ -295,10 +295,10 @@ export default {
     const currentEnvironmentClient = ref(null)
     const isAutoRunning = ref(false)
     const autoRunTimer = ref(null)
-    const autoRunDelay = ref(1500) // 默认自动运行间隔时间
-    const lastActionTime = ref(null) // 上次动作时间
-    const lastAutoActionTime = ref(null) // 上次自动操作时间
-    const isExecutingAction = ref(false) // 新增：是否正在执行action
+    const autoRunDelay = ref(1500) 
+    const lastActionTime = ref(null) 
+    const lastAutoActionTime = ref(null) 
+    const isExecutingAction = ref(false) 
     const connectionStatus = ref({ connected: false, message: 'Not connected' })
     const canCreate = ref(true)
     const envConfig = ref({})
@@ -358,15 +358,11 @@ export default {
         if (result && result.success) {
           console.log('✅ Environment reset successfully');
           
-          // 完全重置：使用与创建环境相同的流程
-          // 1. 通知父组件环境已重置
           emit('environment-reset', {
             result,
-            clearHistory: true  // 添加标记指示需要清空历史记录
+            clearHistory: true 
           });
           
-          // 2. 更新环境状态
-          // 提取观察数据，确保总是字符串格式
           const observation = await currentEnvironmentClient.value.getObservation(props.environmentId)
           let observationText = '';
           if (observation) {
@@ -386,7 +382,6 @@ export default {
             }
           }
           
-          // 确保observationText是字符串
           if (typeof observationText !== 'string') {
             console.warn('⚠️ EnvViewer reset: observationText is not string, converting:', typeof observationText);
             observationText = String(observationText);
@@ -394,7 +389,6 @@ export default {
           
           console.log('📝 EnvViewer reset: Final observationText:', observationText.substring(0, 100) + '...');
           
-          // 3. 重置环境状态
           envState.value = {
             observation: observationText,
             steps: 0,
@@ -404,11 +398,9 @@ export default {
           
           console.log('🔄 Reset environment state:', envState.value);
           
-          // 4. 重置AI对话
           console.log('🧹 Clearing AI conversation history...');
           aiAgent.clearConversation(props.environmentId);
           
-          // 5. 初始化新的AI对话
           console.log('🚀 Initializing new AI conversation...');
           aiAgent.initializeConversation(
             props.environmentId,
@@ -416,7 +408,6 @@ export default {
             observationText
           );
           
-          // 6. 通知组件状态已更新
           emit('state-updated', envState.value);
           
           console.log('✅ Environment reset and initialization complete');
@@ -590,7 +581,6 @@ export default {
         
         // Initialize AI conversation if applicable
         if (envState.value?.observation) {
-          // 设置全局环境类型，确保AI Agent能够正确识别
           window.currentEnvironmentType = props.environmentType;
           console.log('EnvViewer设置全局环境类型:', window.currentEnvironmentType);
           
@@ -611,7 +601,6 @@ export default {
           )
         }
 
-        // 确保连接状态是最新的
         await testConnection()
         
         console.log('🎯 Environment fully initialized and ready for auto run')
@@ -724,13 +713,11 @@ export default {
     }
 
     const startAutoRun = async () => {
-      // 检查基本条件
       if (!currentEnvironmentClient.value || !props.environmentId) {
         console.warn('⚠️ Cannot start auto run: no client or environment')
         return
       }
 
-      // 检查环境状态是否已获取
       if (!envState.value) {
         console.warn('⚠️ Environment state not ready, attempting to refresh...')
         try {
@@ -745,7 +732,6 @@ export default {
         }
       }
 
-      // 检查连接状态
       if (!connectionStatus.value.connected) {
         console.warn('⚠️ Cannot start auto run: not connected to server')
         return
@@ -761,10 +747,8 @@ export default {
       isAutoRunning.value = true
       console.log('▶️ Starting auto run immediately')
       
-      // 移除延迟，立即执行自动操作
       performAutoAction();
       
-      // 然后设置后续的定时器
       autoRunTimer.value = setInterval(async () => {
         await performAutoAction()
       }, autoRunDelay.value)
@@ -776,12 +760,11 @@ export default {
         autoRunTimer.value = null
       }
       isAutoRunning.value = false
-      isExecutingAction.value = false // 清除执行标记
+      isExecutingAction.value = false
       console.log('⏹️ Auto run stopped')
     }
 
     const performAutoAction = async () => {
-      // 检查基本条件
       if (!currentEnvironmentClient.value || !props.environmentId || !envState.value) {
         console.warn('⚠️ Cannot perform auto action: missing requirements', {
           hasClient: !!currentEnvironmentClient.value,

@@ -11,8 +11,8 @@ class EnvironmentManager {
   constructor() {
     this.clients = new Map()
     this.loadedClients = new Map()
-    this.loadingPromises = new Map() // 防止重复加载
-    this.lastErrors = new Map() // 记录错误
+    this.loadingPromises = new Map() 
+    this.lastErrors = new Map() 
   }
 
   /**

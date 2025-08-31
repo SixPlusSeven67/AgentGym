@@ -1,14 +1,14 @@
 /**
- * AI Agent Service - 改进版本
+ * AI Agent Service 
  * 
- * 改进了连接处理、action提取逻辑和错误处理
+ * 
  */
 
 class AIAgentService {
   constructor() {
-    this.baseUrl = 'https://dashscope.aliyuncs.com/compatible-mode'
-    this.apiKey = 'sk-e846b9e69c9c4e9d8f2364640fa00d0d'
-    this.model = "qwen-plus-2025-07-28"
+    this.baseUrl = ''
+    this.apiKey = ''
+    this.model = ""
     this.availableModels = []
     this.initialized = false
     this.isAvailable = false
@@ -16,7 +16,7 @@ class AIAgentService {
     // Conversation management per environment
     this.conversations = new Map()
     this.environmentStates = new Map()
-    this.environmentTypes = new Map()  // 新增：跟踪每个环境的类型
+    this.environmentTypes = new Map()  
     
     // Connection retry configuration
     this.maxRetries = 3
@@ -25,7 +25,7 @@ class AIAgentService {
     this.availabilityCheckInterval = 30000 // 30 seconds
     
     // 防重复调用机制
-    this.activeGenerations = new Map() // 跟踪正在进行的生成请求
+    this.activeGenerations = new Map() 
   }
 
   /**
@@ -88,7 +88,7 @@ class AIAgentService {
       envType = envType || 'textcraft'
     }
     
-    // 检查该环境ID是否已经有一个对话，如果有，先清除它
+    
     if (this.conversations.has(environmentId)) {
       console.log(`⚠️ Detected existing conversation for environment ${environmentId}, clearing it first`)
       this.clearConversation(environmentId)
@@ -105,9 +105,9 @@ class AIAgentService {
       }
     ]
     
-    // 检查initialObservation是否有效，并且不要重复添加任务描述和观察结果
+   
     if (initialObservation && initialObservation.trim()) {
-      // 处理可能的重复内容（例如，当任务描述和初始观察同时存在时）
+    
       const cleanedObservation = this.removePossibleDuplicateContent(initialObservation);
       
       conversation.push({
@@ -128,19 +128,19 @@ class AIAgentService {
     
     this.conversations.set(environmentId, conversation)
     this.environmentStates.set(environmentId, envState)
-    this.environmentTypes.set(environmentId, envType) // 记录环境类型
+    this.environmentTypes.set(environmentId, envType) 
     
     console.log(`🎯 Initialized conversation for environment ${environmentId} (${envType})`)
     return { conversation, envState }
   }
   
   /**
-   * 处理可能的重复内容，移除重复的任务描述等
+   * Remove possible duplicate content from the text
    */
   removePossibleDuplicateContent(text) {
     if (!text) return '';
-    
-    // // 如果文本中有多个任务描述（例如SciWorld中的"Your task is to..."），只保留一个
+
+   
     // const taskPattern = /Your task is to [^\.]+\./gi;
     // const taskMatches = text.match(taskPattern) || [];
     
@@ -148,7 +148,7 @@ class AIAgentService {
     //   console.log(`⚠️ Detected ${taskMatches.length} task descriptions, keeping only one`);
     //   let cleanedText = text;
       
-    //   // 保留第一个任务描述，移除其余的
+
     //   for (let i = 1; i < taskMatches.length; i++) {
     //     cleanedText = cleanedText.replace(taskMatches[i], '');
     //   }
@@ -160,12 +160,12 @@ class AIAgentService {
   }
 
   /**
-   * Generate next action using conversation-based approach - 改进版本
+   * Generate next action using conversation-based approach
    */
   async generateNextAction(environmentId, currentObservation) {
     console.log(`🤖 Generating next action for environment ${environmentId}`)
     
-    // 防重复调用机制 - 检查是否已有正在进行的生成请求
+
     if (this.activeGenerations.has(environmentId)) {
       console.log(`⚠️ Generation already in progress for environment ${environmentId}, skipping`)
       return {
@@ -177,7 +177,7 @@ class AIAgentService {
       }
     }
     
-    // 标记正在生成
+
     this.activeGenerations.set(environmentId, Date.now())
     
     try {
@@ -190,7 +190,7 @@ class AIAgentService {
       
       let conversation = this.conversations.get(environmentId)
       let envState = this.environmentStates.get(environmentId)
-      let envType = this.environmentTypes.get(environmentId) // 获取环境类型
+      let envType = this.environmentTypes.get(environmentId) 
       
       if (!conversation || !envState) {
         console.warn(`⚠️ No conversation initialized for environment ${environmentId}, initializing now`)
@@ -200,7 +200,6 @@ class AIAgentService {
         const result = this.initializeConversation(environmentId, defaultEnvType, observationStr)
         conversation = result.conversation
         envState = result.envState
-        // 重新获取环境类型，因为initializeConversation已经设置了环境类型
         envType = this.environmentTypes.get(environmentId)
       }
 
@@ -235,7 +234,6 @@ class AIAgentService {
       // Use fallback logic
       return this.generateFallbackAction(environmentId, currentObservation, conversation, envState, envType)
     } finally {
-      // 清除正在生成的标记
       this.activeGenerations.delete(environmentId)
     }
   }
@@ -260,7 +258,7 @@ class AIAgentService {
       const generatedText = await this.generateFromConversation(conversation)
       console.log(`🎯 Raw AI response:`, generatedText?.substring(0, 200) + '...')
       
-      // Extract action with improved logic - 跳过webarena环境的action提取
+      // Extract action with improved logic 
       let extractedAction
       console.log(`🔍 Environment type: ${envType}`)
       if (envType === 'webarena' || envType === 'searchqa' || envType === 'sciworld') {
@@ -340,7 +338,7 @@ class AIAgentService {
   }
 
   /**
-   * 改进的动作提取逻辑
+   * 
    */
   extractActionImproved(text) {
     if (!text || typeof text !== 'string') {
@@ -356,34 +354,34 @@ class AIAgentService {
       cleanText = cleanText.slice(0, -4).trim()
     }
 
-    // 尝试多种提取模式，按优先级排序
+
     const patterns = [
-      // 1. 标准的 "Action:" 格式
+
       {
         regex: /Action:\s*([^\n\r]+)/i,
         name: "Action: format"
       },
-      // 2. 在代码块中的动作
+
       {
         regex: /```([^`\n\r]+)```/,
         name: "Code block format"
       },
-      // 3. 引号包围的动作
+
       {
         regex: /"([^"\n\r]+)"/,
         name: "Quoted format"
       },
-      // 4. 以动作词开始的行
+
       {
         regex: /^(get|craft|inventory|look|move|turn|pickup|open|go|search|click|type|examine|focus|wait|task)[^\n\r]*/im,
         name: "Command-like format"
       },
-      // 5. 多行中寻找动作词
+
       {
         regex: /(?:^|\n)\s*((?:get|craft|inventory|look|move|turn|pickup|open|go|search|click|type|examine|focus|wait|task)[^\n\r]*)/im,
         name: "Multi-line command format"
       },
-      // 6. 简单的第一行提取
+
       {
         regex: /^([^\n\r]+)/,
         name: "First line fallback"
@@ -395,7 +393,7 @@ class AIAgentService {
       if (match && match[1]) {
         let action = match[1].trim()
         
-        // 清理提取的动作
+
         action = action
           .replace(/^(Command:|Next:|I suggest:|Try:|You should:|I will|Let me|The action is:)\s*/i, '')
           .replace(/^["'`]/, '')
@@ -403,7 +401,7 @@ class AIAgentService {
           .replace(/\.$/, '')
           .trim()
 
-        // 验证动作的有效性
+
         if (this.isValidAction(action)) {
           console.log(`✅ Action extracted using ${pattern.name}: "${action}"`)
           return action
@@ -418,7 +416,7 @@ class AIAgentService {
   }
 
   /**
-   * 验证动作的有效性
+   *
    */
   isValidAction(action) {
     if (!action || typeof action !== 'string') return false
@@ -427,12 +425,12 @@ class AIAgentService {
     if (trimmed.length < 2) return false
     if (trimmed.length > 200) return false
     
-    // 检查是否包含明显的非动作内容
+
     const invalidPatterns = [
       /^(thought|thinking|i think|let me think)/i,
       /^(the|this|that|it|there)/i,
       /^(based on|according to|given)/i,
-      /\?\s*$/,  // 以问号结尾
+      /\?\s*$/,  
     ]
     
     for (const pattern of invalidPatterns) {
@@ -445,7 +443,7 @@ class AIAgentService {
   }
 
   /**
-   * 改进的fallback动作生成
+   * 
    */
   getFallbackActionImproved(observation, rounds, envType) {
     const obsLower = observation ? observation.toLowerCase() : ''
@@ -524,7 +522,7 @@ class AIAgentService {
       return { role: "user", content: msg.value }
     })
     
-    // 简化日志输出，避免在页面上显示消息对象
+
     console.log('🤖 AI Agent API request:', {
       model: this.model,
       messages: messages
@@ -717,8 +715,8 @@ To be successful, it is very important to follow the following rules:
   clearConversation(environmentId) {
     this.conversations.delete(environmentId)
     this.environmentStates.delete(environmentId)
-    this.environmentTypes.delete(environmentId) // 清除环境类型
-    this.activeGenerations.delete(environmentId) // 清除正在生成的标记
+    this.environmentTypes.delete(environmentId) 
+    this.activeGenerations.delete(environmentId) 
     console.log(`🧹 Cleared conversation for environment ${environmentId}`)
   }
 
