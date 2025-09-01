@@ -6,7 +6,7 @@ authors = [
     {name = "hotdog-zz", email = "21307130044@m.fudan.edu.cn"},
     {name = "SixPlusSeven67", email = "jqliu22@m.fudan.edu.cn"},
 ]
-dependencies = ["uvicorn", "quart"]
+dependencies = ["uvicorn", "quart", "quart_cors"]
 requires-python = "==3.10.13"
 readme = "README.md"
 license = {text = "MIT"}

@@ -3,6 +3,7 @@ Async Flask (Quart) Server
 """
 
 from quart import Quart, jsonify, request
+from quart_cors import cors
 import subprocess
 import json
 import glob
@@ -13,6 +14,11 @@ import asyncio
 from .environment import webarena_env_server
 
 app = Quart(__name__)
+
+app = cors(
+    app, 
+    allow_origin="*",
+)
 _max_id=0
 _max_id_lock=asyncio.Lock()
 
@@ -70,7 +76,7 @@ async def get_obsmetadata():
     """
     env_idx = request.args.get("env_idx", type=int)
     obs_meta = await asyncio.to_thread(webarena_env_server.observation_metadata, env_idx)
-    return jsonify(obs_meta["text"])
+    return jsonify(obs_meta)
 
 def check_cookies_expiration():
     relogin_tolerance = 2700 # 1 hours in seconds
