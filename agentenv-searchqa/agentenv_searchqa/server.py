@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 import time
 import logging
+import os
 
 from .env_wrapper import searchqa_env_server
 from .model import *
@@ -9,15 +10,17 @@ from .utils import debug_flg
 
 app = FastAPI(debug=debug_flg)
 
-# If using visualization mode to debug, please uncomment this.
-# from fastapi.middleware.cors import CORSMiddleware
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+VISUAL = os.environ.get("VISUAL", "false").lower() == "true"
+if VISUAL:
+    print("Running in VISUAL mode")
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # 自定义中间件
 @app.middleware("http")

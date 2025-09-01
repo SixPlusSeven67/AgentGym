@@ -15,10 +15,13 @@ from .environment import webarena_env_server
 
 app = Quart(__name__)
 
-app = cors(
-    app, 
-    allow_origin="*",
-)
+VISUAL = os.environ.get("VISUAL", "false").lower() == "true"
+if VISUAL:
+    print("Running in VISUAL mode")
+    app = cors(
+        app, 
+        allow_origin="*",
+    )
 _max_id=0
 _max_id_lock=asyncio.Lock()
 

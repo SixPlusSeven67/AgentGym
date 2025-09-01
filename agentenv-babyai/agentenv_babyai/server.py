@@ -1,18 +1,21 @@
 from fastapi import FastAPI
+import os
 from .model import *
 from .environment import server
 
 app = FastAPI()
 
-# If using visualization mode to debug, please uncomment this.
-# from fastapi.middleware.cors import CORSMiddleware
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+VISUAL = os.environ.get("VISUAL", "false").lower() == "true"
+if VISUAL:
+    print("Running in VISUAL mode")
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 @app.get("/")
 def hello():
