@@ -33,7 +33,7 @@ def step(body: StepRequestBody):
 
 @app.post("/step_visual")
 def step_visual(body: StepRequestBody):
-    return server.step_visual(body.id, body.actions)
+    return server.step_visual(body.id, body.action)
 
 @app.post("/reset")
 def reset(body: ResetRequestBody):
