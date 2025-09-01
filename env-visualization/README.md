@@ -53,6 +53,8 @@ class AIAgentService {
 
 ## Quick Start
 
+### Start vue server
+
 ```bash
 cd env-visualization
 # Install dependencies
@@ -71,6 +73,19 @@ npm run preview
 ```
 
 On Windows (cmd / PowerShell) run the same commands directly.
+
+### Start AgentGym Envs
+
+```bash
+# use agentenv-textcraft for example
+cd AgentEnvironments/agentenv-textcraft
+# follow README.md to install
+VISUAL=True textcraft --port 36001
+```
+
+wait for env initialization done, then open vue website to visualize agent-env interaction
+
+> NOTE: env id = 0 will encounter a bug, please click `create` button more than once.
 
 ## Add New Environment
 
