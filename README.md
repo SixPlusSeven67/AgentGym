@@ -8,6 +8,7 @@
 
 - 🚀 [2025/09/03] AgentGym-RL released! We introduce the reinforcement learning (RL) version of AgentGym, enabling agents to learn directly from interactive environments: [AgentGym-RL](https://github.com/FudanNLP-Agent/Agent-VERL).
 - 👀 [2025/09/03] AgentGym now provides an interactive frontend for visualization. Researchers can replay and inspect full trajectories, step through agent decision-making, and analyze model behaviors more easily.
+- 🔧 [2025/09/03] We enhanced several environments to improve stability and robustness, with better support for large-scale parallel execution (e.g., parallel runs in WebArena).
 - 🥳 [2024/06/07] Our paper is released on arXiv: [AgentGym: Evolving Large Language Model-based Agents across Diverse Environments](https://arxiv.org/abs/2406.04151) !
 - 🤖 [2024/06/06] Our model is available on Hugging Face: [AgentEvol-7B](https://huggingface.co/AgentGym/AgentEvol-7B).
 - 💥 [2024/06/06] Our trajectory set and benchmark are available on Hugging Face: [AgentTraj-L](https://huggingface.co/datasets/AgentGym/AgentTraj-L), [AgentEval](https://huggingface.co/datasets/AgentGym/AgentEval).

@@ -1,9 +1,9 @@
 from base_eval import EvalArguments, main
 
 args = EvalArguments(
-    model_path="/home/share/models/Qwen2.5-7B-Instruct",
-    inference_file="/home/kyln24/agentenv_scripts/AgentEval/webshop_test.json",
-    output_file="/home/kyln24/agentenv_scripts/Qwen2.5-7B-Instruct_webshop_test_code_as_action_910b.jsonl",
+    model_path="",
+    inference_file="",
+    output_file="",
     task_name="webshop",
     seed=42,
     max_round=10,

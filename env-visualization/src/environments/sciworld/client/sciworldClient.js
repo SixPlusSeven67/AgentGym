@@ -81,7 +81,7 @@ class SciWorldClient extends BaseEnvClient {
    */
   async step(envId, action) {
     try {
-      const response = await this.request('/step', {
+      const response = await this.request('/step_visual', {
         method: 'POST',
         body: JSON.stringify({
           id: parseInt(envId),
