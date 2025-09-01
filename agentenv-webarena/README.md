@@ -2,7 +2,10 @@
 
 ## Setup
 
-Before setup, please set availiable Web Server urls and OPENAI api key for llm judge.
+Before setup, please:
+
+- set availiable Web Server urls and OPENAI api key for llm judge.
+- **please see [WebArena](https://github.com/web-arena-x/webarena/blob/main/environment_docker/README.md), build your web server, replace all urls in `setup.sh` and `agentenv-webarena/_init_.py` to your own urls.**
 
 ```sh
 conda create -n agentenv-webarena python=3.10.13
