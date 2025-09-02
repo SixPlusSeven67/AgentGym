@@ -65,5 +65,5 @@ def reset(reset_query: ResetQuery):
 
 @app.post("/close")
 def close(body: CloseRequestBody):
-    print(f"/close {body.id}")
-    return searchqa_env_server.close(body.id)
+    print(f"/close {body.env_idx}")
+    return searchqa_env_server.close(body.env_idx)

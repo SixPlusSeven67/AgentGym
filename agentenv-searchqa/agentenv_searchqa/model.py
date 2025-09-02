@@ -15,7 +15,7 @@ class StepResponse(BaseModel):
     observation: str
     reward: float
     done: bool
-    info:None
+    info: None
 
 
 class ResetQuery(BaseModel):
@@ -33,4 +33,4 @@ class QueryRequest(BaseModel):
     return_scores: bool = False
     
 class CloseRequestBody(BaseModel):
-    id: int
+    env_idx: int

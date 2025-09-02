@@ -77,7 +77,10 @@ class SearchQAEnvClient(BaseEnvClient):
         self.id = id
         response = self._post("reset", {"id": self.id})
         return response
-
+    
+    def close(self):
+        response = self._post("close", {})
+        return response
 
 class SearchQATask(BaseTask):
     env_client_cls = SearchQAEnvClient
