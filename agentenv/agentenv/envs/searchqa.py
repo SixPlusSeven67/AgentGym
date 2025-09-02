@@ -64,7 +64,7 @@ class SearchQAEnvClient(BaseEnvClient):
 
     def step(self, action: str) -> StepOutput:
         # action is the original output of llm
-        print(f"Action: {action}")
+        # print(f"Action: {action}")
         response = self._post("step", {"action": action})
         # print(response)
         return StepOutput(
