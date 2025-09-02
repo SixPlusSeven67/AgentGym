@@ -167,12 +167,12 @@ def compute_score_em(solution_str, ground_truth, method='strict', structure_form
         retrieval_correct = is_retrieval_correct(solution_str, ground_truth['target'])
     answer = extract_solution(solution_str=solution_str)
     do_print = random.randint(1, 64) == 1
-    do_print = True  # For debugging purposes, always print
-    if do_print:
-        print(f"--------------------------------")
-        print(f"Golden answers: {ground_truth['target']}")
-        print(f"Extracted answer: {answer}")
-        print(f"Solution string: {solution_str}")
+    # do_print = True  # For debugging purposes, always print
+    # if do_print:
+    #     print(f"--------------------------------")
+    #     print(f"Golden answers: {ground_truth['target']}")
+    #     print(f"Extracted answer: {answer}")
+    #     print(f"Solution string: {solution_str}")
             
     if answer is None:
         if is_valid_format:

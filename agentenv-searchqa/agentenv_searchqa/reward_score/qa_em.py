@@ -93,13 +93,13 @@ def compute_score_em(solution_str, ground_truth, method='strict', format_score=0
         score: the score for the correct answer
     """
     answer = extract_solution(solution_str=solution_str)
-    do_print = random.randint(1, 64) == 1
+    # do_print = random.randint(1, 64) == 1
     
-    if do_print:
-        print(f"--------------------------------")
-        print(f"Golden answers: {ground_truth['target']}")
-        print(f"Extracted answer: {answer}")
-        print(f"Solution string: {solution_str}")
+    # if do_print:
+    #     print(f"--------------------------------")
+    #     print(f"Golden answers: {ground_truth['target']}")
+    #     print(f"Extracted answer: {answer}")
+    #     print(f"Solution string: {solution_str}")
     
     if answer is None:
         return 0
@@ -121,13 +121,13 @@ def compute_score_subem(solution_str, ground_truth, method='strict', format_scor
         score: the score for the correct answer
     """
     answer = extract_solution(solution_str=solution_str)
-    do_print = random.randint(1, 64) == 1
-    do_print = True  # For debugging purposes, always print
-    if do_print:
-        print(f"--------------------------------")
-        print(f"Golden answers: {ground_truth['target']}")
-        print(f"Extracted answer: {answer}")
-        print(f"Solution string: {solution_str}")
+    # do_print = random.randint(1, 64) == 1
+    # do_print = True  # For debugging purposes, always print
+    # if do_print:
+    #     print(f"--------------------------------")
+    #     print(f"Golden answers: {ground_truth['target']}")
+    #     print(f"Extracted answer: {answer}")
+    #     print(f"Solution string: {solution_str}")
     
     if answer is None:
         return 0
