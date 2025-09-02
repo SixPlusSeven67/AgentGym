@@ -9,6 +9,7 @@ import io
 import os
 from PIL import Image
 import numpy as np
+import threading
 class BabyAI(gym.Env):
     def __init__(self, 
                  max_episode_steps=50, 
@@ -801,13 +802,15 @@ class BabyAIEnv:
         self.info = {}
         self.ls = []
         self.games = []
+        self._lock = threading.Lock()
 
     def create(self):
         try:
-            idx = self._max_id
+            with self._lock:
+                idx = self._max_id
+                self._max_id += 1
             self.info[idx] = {"deleted": False, "done": False}
             self.ls.append(idx)
-            self._max_id += 1
             return {"id": idx}
         except Exception as e:
             return {"error": str(e)}

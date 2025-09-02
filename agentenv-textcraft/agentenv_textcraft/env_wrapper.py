@@ -1,6 +1,6 @@
 from .environment import TextCraftEnv
 from .crafting_tree import CraftingTree
-
+import threading
 
 class TextCraft_Wrapper:
     def __init__(self, minecraft_dir="agentenv_textcraft/"):
@@ -9,10 +9,13 @@ class TextCraft_Wrapper:
         self.info = {}  # dict[id, env_info]
         self.ls = []
         self.crafting_tree = CraftingTree(minecraft_dir=minecraft_dir)
+        self._lock = threading.Lock()
 
     def create(self, commands: str = None, goal: str = None):
         try:
-            id = self._max_id
+            with self._lock:
+                id = self._max_id
+                self._max_id += 1
             new_env = TextCraftEnv(
                 crafting_tree=self.crafting_tree, commands=commands, goal=goal
             )
@@ -27,7 +30,6 @@ class TextCraft_Wrapper:
                 "reward": 0,
                 "deleted": False,
             }
-            self._max_id += 1
         except Exception as e:
             payload = {"error": f"{e}"}
         return payload
