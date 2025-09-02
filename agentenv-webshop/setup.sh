@@ -15,4 +15,5 @@ cd ../..
 pip install -e .
 
 pip uninstall numpy
+
 pip install numpy
